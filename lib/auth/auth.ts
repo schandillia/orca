@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { magicLink } from "better-auth/plugins"
 import { db, schema } from "@/db/drizzle"
 import { env } from "@/env"
 
@@ -10,10 +11,21 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
+  plugins: [
+    magicLink({
+      sendMagicLink: async ({ email, url }) => {
+        // await sendEmail({
+        //   to: email,
+        //   subject: `Your ${siteConfig.brand.name} login link`,
+        //   body: await renderMagicLinkEmail(url),
+        // })
+      },
+    }),
+  ],
   socialProviders: {
     github: {
-      clientId: env.AUTH_GITHUB_CLIENT_ID,
-      clientSecret: env.AUTH_GITHUB_CLIENT_SECRET,
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
     },
     google: {
       clientId: env.GOOGLE_CLIENT_ID,
