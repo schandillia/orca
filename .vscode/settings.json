@@ -21,6 +21,13 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
 
+  "[svg]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
+    "editor.codeActionsOnSave": {}
+  },
+
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "always",
     "source.organizeImports.biome": "always"
