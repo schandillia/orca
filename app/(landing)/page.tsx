@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export default function HomePage() {
@@ -11,7 +12,6 @@ export default function HomePage() {
         "mx-auto max-w-4xl",
       )}
     >
-      {/* biome-ignore lint/correctness/useUniqueElementIds: Static ID is intentional in this Server Component */}
       <h1
         id="hero-heading"
         className={cn(
@@ -30,30 +30,19 @@ export default function HomePage() {
         Orca gives you authentication, billing, and the rest of the plumbing
         already wired together, so you can build the part that matters.
       </p>
-      <div className={cn("flex flex-col items-center gap-3", "sm:flex-row")}>
-        <Link
-          href="/login"
-          className={cn(
-            "inline-flex items-center gap-2",
-            "rounded-lg bg-primary text-primary-foreground",
-            "px-6 py-3 font-semibold",
-            "transition-opacity hover:opacity-90",
-          )}
-        >
+      <div className="flex flex-col items-center gap-3 sm:flex-row">
+        <Button render={<Link href="/login" />} nativeButton={false} size="lg">
           Get started free
-        </Link>
+        </Button>
 
-        <Link
-          href="/pricing"
-          className={cn(
-            "inline-flex items-center gap-2",
-            "rounded-lg border border-border bg-background",
-            "px-6 py-3 font-semibold text-foreground",
-            "transition-colors hover:bg-muted",
-          )}
+        <Button
+          render={<Link href="/pricing" />}
+          nativeButton={false}
+          size="lg"
+          variant="outline"
         >
           View pricing
-        </Link>
+        </Button>
       </div>
     </section>
   )
