@@ -113,13 +113,14 @@ export function LoginForm({
           <p>
             Check <strong>{email}</strong> for your login link.
           </p>
-          <button
+          <Button
             type="button"
-            className="mt-4 text-sm underline"
+            variant="link"
+            className="mt-4 h-auto p-0"
             onClick={() => setSent(false)}
           >
             Use a different email
-          </button>
+          </Button>
         </div>
       ) : (
         <form className="p-6 md:p-8" onSubmit={handleSubmit}>
