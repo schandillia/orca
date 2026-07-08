@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { LoginForm } from "@/components/auth/login-form"
 import { Card, CardContent } from "@/components/ui/card"
 import { DEFAULT_LOGIN_REDIRECT } from "@/config/app"
+import { requireUnauth } from "@/lib/auth/auth-utils"
 
 export const metadata: Metadata = {
   title: "Login",
@@ -13,6 +14,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ callbackUrl?: string }>
 }) {
+  await requireUnauth()
+
   const params = await searchParams
   const rawCallbackUrl = params?.callbackUrl
 
