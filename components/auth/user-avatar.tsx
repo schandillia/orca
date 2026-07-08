@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 
 export function getInitials(
   name: string | null | undefined,
-  email: string
+  email: string,
 ): string {
   if (name) {
     return name
@@ -18,9 +18,8 @@ export function getInitials(
 }
 
 // Extend the default Avatar props so it accepts standard attributes
-interface UserAvatarProps extends React.ComponentPropsWithoutRef<
-  typeof Avatar
-> {
+interface UserAvatarProps
+  extends React.ComponentPropsWithoutRef<typeof Avatar> {
   user: {
     name?: string | null
     email?: string | null

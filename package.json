@@ -8,14 +8,20 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
+    "type-check": "bunx tsc --noEmit",
+    "preflight": "bun audit && bun lint && bun type-check",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
-    "gen:env": "bun run scripts/generate-env-example.ts"
+    "gen:env": "bun run scripts/generate-env-example.ts",
+    "trace": "bun scripts/trace-overrides.ts",
+    "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.1081.0",
+    "@aws-sdk/client-sesv2": "^3.1081.0",
     "@base-ui/react": "^1.6.0",
     "@shadcn/react": "^0.2.0",
     "@t3-oss/env-nextjs": "^0.13.11",
@@ -36,12 +42,14 @@
     "next": "16.2.10",
     "next-themes": "^0.4.6",
     "postgres": "^3.4.9",
+    "postmark": "^4.0.7",
     "react": "19.2.4",
     "react-day-picker": "^10.0.1",
     "react-dom": "19.2.4",
     "react-icons": "^5.7.0",
     "react-resizable-panels": "^4.12.1",
     "recharts": "3.8.0",
+    "resend": "^6.17.1",
     "server-only": "^0.0.1",
     "shadcn": "^4.13.0",
     "sonner": "^2.0.7",
@@ -66,5 +74,21 @@
   "trustedDependencies": [
     "sharp",
     "unrs-resolver"
-  ]
+  ],
+  "overrides": {
+    "postcss": "^8.5.10",
+    "esbuild": "0.28.1",
+    "ws": "^8.20.1",
+    "uuid": "^11.1.1",
+    "qs": "^6.15.2",
+    "samlify": "^2.13.0"
+  },
+  "overrides-rationale": {
+    "postcss": "watch: @tailwindcss/postcss, better-auth, next, shadcn",
+    "esbuild": "watch: better-auth, drizzle-kit",
+    "ws": "⚠️ not installed — consider removing this override",
+    "uuid": "⚠️ not installed — consider removing this override",
+    "qs": "watch: shadcn",
+    "samlify": "⚠️ not installed — consider removing this override"
+  }
 }

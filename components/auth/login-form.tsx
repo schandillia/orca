@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react"
 import { FaGithub, FaGoogle } from "react-icons/fa"
-import { toast } from "sonner"
 import { LoginFormHeader } from "@/components/auth/login-form-header"
 import { type Provider, SocialLogin } from "@/components/auth/social-login"
 import { Button } from "@/components/ui/button"
