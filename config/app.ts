@@ -1,6 +1,6 @@
 export const DEFAULT_LOGIN_REDIRECT = "/"
 
-export const DOMAIN_ACTIVE = true
+export const DOMAIN_ACTIVE = false
 
 export const BRAND_NAME = "Orca"
 
