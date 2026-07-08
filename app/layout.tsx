@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Manrope } from "next/font/google"
 import "@/app/styles/globals.css"
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { TRPCReactProvider } from "@/trpc/client"
 
@@ -39,7 +40,10 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+          {children}
+          <Toaster position="top-right" richColors closeButton theme="system" />
+        </TRPCReactProvider>
       </body>
     </html>
   )
