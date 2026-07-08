@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { ModeToggle } from "@/components/layout/mode-toggle"
 import { PipeSeparator } from "@/components/layout/pipe-separator"
 
 const footerLinks = [
@@ -37,7 +38,7 @@ export function Footer() {
           <p className="text-sm text-neutral-400">
             © {new Date().getFullYear()} Orca
           </p>
-          {/* <ModeToggle /> */}
+          <ModeToggle />
         </div>
       </div>
     </footer>
