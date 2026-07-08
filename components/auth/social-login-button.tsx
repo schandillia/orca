@@ -10,12 +10,15 @@ export type Provider = {
   content: ReactNode
 }
 
-interface SocialLoginProps {
+interface SocialLoginButtonProps {
   readonly providers: readonly Provider[]
   readonly disabled?: boolean
 }
 
-export function SocialLogin({ providers, disabled = false }: SocialLoginProps) {
+export function SocialLoginButton({
+  providers,
+  disabled = false,
+}: SocialLoginButtonProps) {
   return (
     <Field className="grid grid-cols-2 gap-4">
       {providers.map(({ label, onClick, content }) => (
@@ -27,7 +30,7 @@ export function SocialLogin({ providers, disabled = false }: SocialLoginProps) {
           onClick={onClick}
         >
           {content}
-          <span className="sr-only">{label}</span>
+          {label}
         </Button>
       ))}
     </Field>

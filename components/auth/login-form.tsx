@@ -1,9 +1,13 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { FaGithub, FaGoogle } from "react-icons/fa"
+import { FaGithub } from "react-icons/fa"
+import { FcGoogle } from "react-icons/fc"
 import { LoginFormHeader } from "@/components/auth/login-form-header"
-import { type Provider, SocialLogin } from "@/components/auth/social-login"
+import {
+  type Provider,
+  SocialLoginButton,
+} from "@/components/auth/social-login-button"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -26,7 +30,7 @@ const SOCIAL_PROVIDERS = [
   {
     id: "google",
     label: "Google",
-    icon: FaGoogle,
+    icon: FcGoogle,
   },
   {
     id: "github",
@@ -174,7 +178,10 @@ export function LoginForm({
               <div className="h-px flex-1 bg-border" />
             </div>
 
-            <SocialLogin providers={socialProviders} disabled={isDisabled} />
+            <SocialLoginButton
+              providers={socialProviders}
+              disabled={isDisabled}
+            />
           </FieldGroup>
         </form>
       )}
