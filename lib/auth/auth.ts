@@ -2,8 +2,10 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { magicLink } from "better-auth/plugins"
 import { BRAND_NAME } from "@/config/app"
+import { MAGICLINK_SENDER_EMAIL, MAGICLINK_SENDER_NAME } from "@/config/emails"
 import { MAGIC_LINK_EXPIRATION_SECONDS } from "@/config/time"
 import { db, schema } from "@/db/drizzle"
+import { renderMagicLinkEmail } from "@/emails/magic-link"
 import { env } from "@/env"
 import { sendEmail } from "@/lib/send-email"
 
@@ -20,8 +22,9 @@ export const auth = betterAuth({
       sendMagicLink: async ({ email, url }) => {
         await sendEmail({
           to: email,
+          from: `${MAGICLINK_SENDER_NAME} <${MAGICLINK_SENDER_EMAIL}>`,
           subject: `Your ${BRAND_NAME} login link`,
-          body: url,
+          body: await renderMagicLinkEmail(url),
         })
       },
     }),
