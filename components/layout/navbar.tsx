@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { UserButton } from "@/components/auth/user-button"
+import type { Session } from "@/lib/auth/auth"
 import { cn } from "@/lib/utils"
 
 const navLinks = [
@@ -9,10 +11,11 @@ const navLinks = [
 ]
 
 interface NavbarProps {
+  session: Session | null
   seeThru?: boolean
 }
 
-export function Navbar({ seeThru = false }: NavbarProps) {
+export function Navbar({ session, seeThru = false }: NavbarProps) {
   return (
     <header
       className={cn(
@@ -50,6 +53,7 @@ export function Navbar({ seeThru = false }: NavbarProps) {
               </Link>
             ))}
           </nav>
+          <UserButton session={session} />
           {/* <>
             {session && <NotificationBell />}
             <UserButton session={session} />

@@ -4,15 +4,15 @@ import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { Field } from "@/components/ui/field"
 
-type Provider = {
+export type Provider = {
   label: string
   onClick: () => void
   content: ReactNode
 }
 
 interface SocialLoginProps {
-  providers: Provider[]
-  disabled?: boolean
+  readonly providers: readonly Provider[]
+  readonly disabled?: boolean
 }
 
 export function SocialLogin({ providers, disabled = false }: SocialLoginProps) {

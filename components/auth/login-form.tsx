@@ -3,7 +3,7 @@
 import { useRef, useState } from "react"
 import { FaGithub, FaGoogle } from "react-icons/fa"
 import { LoginFormHeader } from "@/components/auth/login-form-header"
-import { SocialLogin } from "@/components/auth/social-login"
+import { type Provider, SocialLogin } from "@/components/auth/social-login"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -22,7 +22,20 @@ interface LoginFormProps extends React.ComponentProps<"div"> {
   onSuccess?: () => void
 }
 
-type SocialProvider = "google" | "github"
+const SOCIAL_PROVIDERS = [
+  {
+    id: "google",
+    label: "Google",
+    icon: FaGoogle,
+  },
+  {
+    id: "github",
+    label: "GitHub",
+    icon: FaGithub,
+  },
+] as const
+
+type SocialProvider = (typeof SOCIAL_PROVIDERS)[number]["id"]
 type LoadingAction = "magic" | SocialProvider
 
 export function LoginForm({
@@ -79,26 +92,17 @@ export function LoginForm({
     })
   }
 
-  const socialProviders = [
-    {
-      label: "Google",
-      onClick: () => handleSocialLogin("google"),
+  const socialProviders: Provider[] = SOCIAL_PROVIDERS.map(
+    ({ id, label, icon: Icon }) => ({
+      label,
+      onClick: () => handleSocialLogin(id),
       content: (
-        <LoadingSwap isLoading={loadingAction === "google"}>
-          <FaGoogle className="size-4" />
+        <LoadingSwap isLoading={loadingAction === id}>
+          <Icon className="size-4" />
         </LoadingSwap>
       ),
-    },
-    {
-      label: "GitHub",
-      onClick: () => handleSocialLogin("github"),
-      content: (
-        <LoadingSwap isLoading={loadingAction === "github"}>
-          <FaGithub className="size-4" />
-        </LoadingSwap>
-      ),
-    },
-  ]
+    }),
+  )
 
   const isDisabled = loadingAction !== null
 
