@@ -10,13 +10,13 @@ import { useTRPC } from "@/trpc/client"
 export default function HomePage() {
   const trpc = useTRPC()
   const { data } = useQuery(trpc.getWorkflows.queryOptions())
-  const testAI = useMutation(trpc.testAI.mutationOptions(
-    {
+  const testAI = useMutation(
+    trpc.testAI.mutationOptions({
       onSuccess: () => {
         toast.success("AI Job queued")
       },
-    }
-  ))
+    }),
+  )
   const create = useMutation(
     trpc.createWorkflow.mutationOptions({
       onSuccess: () => {

@@ -1,5 +1,3 @@
-import { google } from "@ai-sdk/google"
-import { generateText } from "ai"
 import { db } from "@/db/drizzle"
 import { inngest } from "@/inngest/client"
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init"

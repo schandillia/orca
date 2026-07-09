@@ -3,12 +3,18 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { createOpenAI } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import { MAX_RETRIES } from "@/config/background-jobs"
-import { db } from "@/db/drizzle"
 import { inngest } from "@/inngest/client"
 
 const google = createGoogleGenerativeAI()
 const openai = createOpenAI()
 const anthropic = createAnthropic()
+
+const createTelemetryOptions = (functionId: string) => ({
+  isEnabled: true,
+  functionId,
+  recordInputs: true,
+  recordOutputs: true,
+})
 
 export const execute = inngest.createFunction(
   {
@@ -18,7 +24,7 @@ export const execute = inngest.createFunction(
       event: "execute/ai",
     },
   },
-  async ({ event, step }) => {
+  async ({ step }) => {
     const { steps: geminiSteps } = await step.ai.wrap(
       "gemini-generate-text",
       generateText,
@@ -26,6 +32,7 @@ export const execute = inngest.createFunction(
         model: google("gemini-2.5-flash"),
         system: "You are a helpful assistant",
         prompt: "Write a ghost story",
+        experimental_telemetry: createTelemetryOptions("gemini-generate-text"),
       },
     )
     const { steps: openAISteps } = await step.ai.wrap(
@@ -35,6 +42,7 @@ export const execute = inngest.createFunction(
         model: openai("gpt-5.5"),
         system: "You are a helpful assistant",
         prompt: "Write a ghost story",
+        experimental_telemetry: createTelemetryOptions("openAI-generate-text"),
       },
     )
     const { steps: anthropicSteps } = await step.ai.wrap(
@@ -44,6 +52,9 @@ export const execute = inngest.createFunction(
         model: anthropic("claude-sonnet-4-5"),
         system: "You are a helpful assistant",
         prompt: "Write a ghost story",
+        experimental_telemetry: createTelemetryOptions(
+          "anthropic-generate-text",
+        ),
       },
     )
     return { geminiSteps, openAISteps, anthropicSteps }
