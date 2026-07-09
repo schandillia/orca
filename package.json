@@ -18,9 +18,15 @@
     "gen:env": "bun run scripts/generate-env-example.ts",
     "trace": "bun scripts/trace-overrides.ts",
     "clean": "rm -rf .next node_modules",
-    "email": "email dev --dir emails"
+    "email": "email dev --dir emails",
+    "inngest:dev": "inngest dev",
+    "dev:all": "mprocs"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.10",
+    "@ai-sdk/google": "^4.0.10",
+    "@ai-sdk/openai": "^4.0.9",
+    "@ai-sdk/react": "^4.0.19",
     "@aws-sdk/client-ses": "^3.1081.0",
     "@aws-sdk/client-sesv2": "^3.1081.0",
     "@base-ui/react": "^1.6.0",
@@ -33,6 +39,7 @@
     "@trpc/client": "^11.18.0",
     "@trpc/server": "^11.18.0",
     "@trpc/tanstack-react-query": "^11.18.0",
+    "ai": "^7.0.18",
     "better-auth": "^1.6.23",
     "class-variance-authority": "^0.7.1",
     "client-only": "^0.0.1",
@@ -41,6 +48,7 @@
     "date-fns": "^4.4.0",
     "drizzle-orm": "^0.45.2",
     "embla-carousel-react": "^8.6.0",
+    "inngest": "^4.11.0",
     "input-otp": "^1.4.2",
     "next": "16.2.10",
     "next-themes": "^0.4.6",
@@ -68,6 +76,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.10",
+    "mprocs": "^0.9.6",
     "react-email": "^6.6.8",
     "tailwindcss": "^4",
     "typescript": "^5"

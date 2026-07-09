@@ -1,0 +1,6 @@
+procs:
+  inngest:
+    cmd: ["inngest", "dev"]
+
+  next:
+    cmd: ["bun", "dev"]

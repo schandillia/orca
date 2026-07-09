@@ -1,17 +1,47 @@
+"use client"
+
+import { useMutation, useQuery } from "@tanstack/react-query"
 import Link from "next/link"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useTRPC } from "@/trpc/client"
 
 export default function HomePage() {
+  const trpc = useTRPC()
+  const { data } = useQuery(trpc.getWorkflows.queryOptions())
+  const testAI = useMutation(trpc.testAI.mutationOptions(
+    {
+      onSuccess: () => {
+        toast.success("AI Job queued")
+      },
+    }
+  ))
+  const create = useMutation(
+    trpc.createWorkflow.mutationOptions({
+      onSuccess: () => {
+        toast.success("Job queued")
+      },
+    }),
+  )
+  console.log(data)
+
   return (
     <section
       aria-labelledby="hero-heading"
       className={cn(
-        "flex h-full flex-col items-center justify-center",
+        "flex flex-1 flex-col items-center justify-center",
         "gap-8 px-6 pt-14 text-center",
         "mx-auto max-w-4xl",
       )}
     >
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+      <Button disabled={testAI.isPending} onClick={() => testAI.mutate()}>
+        Test AI
+      </Button>
+      <Button disabled={create.isPending} onClick={() => create.mutate()}>
+        Create Workflow
+      </Button>
       <h1
         id="hero-heading"
         className={cn(
