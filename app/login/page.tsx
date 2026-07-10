@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Login to your account",
 }
 
-export default async function LoginPage({
+export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<{ callbackUrl?: string }>

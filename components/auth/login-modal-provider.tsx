@@ -35,7 +35,7 @@ export function LoginModalProvider({
     <LoginModalContext.Provider
       value={{
         openModal: () => {
-          setCallbackURL(window.location.pathname)
+          setCallbackURL(window.location.pathname + window.location.search)
           setOpen(true)
         },
         closeModal: () => setOpen(false),

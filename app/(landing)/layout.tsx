@@ -3,7 +3,7 @@ import { Footer } from "@/components/layout/footer"
 import { Navbar } from "@/components/layout/navbar"
 import { getServerSession } from "@/lib/auth/get-server-session"
 
-export default async function MarketingLayout({
+export default async function Layout({
   children,
 }: {
   children: React.ReactNode
@@ -17,7 +17,7 @@ export default async function MarketingLayout({
           <Navbar session={session} seeThru />
         </header>
 
-        <main className="flex-1 text-foreground">{children}</main>
+        <main className="flex flex-1 text-foreground">{children}</main>
 
         <Footer />
       </div>

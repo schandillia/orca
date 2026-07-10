@@ -1,17 +1,24 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { authClient } from "@/lib/auth/auth-client"
+import { publicRoutes } from "@/routes"
 
 export function useAuthActions() {
-  const router = useRouter()
+  const pathname = usePathname()
 
   async function handleSignOut() {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push("/")
-          router.refresh()
+          if (publicRoutes.has(pathname)) {
+            window.location.href = pathname
+            return
+          }
+
+          const callbackUrl = pathname + window.location.search
+
+          window.location.href = `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`
         },
       },
     })

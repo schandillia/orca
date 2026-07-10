@@ -3,4 +3,4 @@ procs:
     cmd: ["inngest", "dev"]
 
   next:
-    cmd: ["bun", "dev"]
+    cmd: ["sh", "-c", "rm -rf .next && bun dev"]

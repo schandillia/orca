@@ -11,6 +11,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
@@ -28,7 +29,11 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "build/types/**/*.ts",
+    "build/dev/types/**/*.ts",
+    ".build/types/**/*.ts",
+    ".build/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
