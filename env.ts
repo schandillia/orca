@@ -30,6 +30,7 @@ export const env = createEnv({
     ANTHROPIC_API_KEY: z.string().min(1).optional(),
     SENTRY_ORG: z.string().min(1).optional(),
     SENTRY_PROJECT: z.string().min(1).optional(),
+    POLAR_ACCESS_TOKEN: z.string().min(1),
   },
 
   client: {
@@ -56,5 +57,6 @@ export const env = createEnv({
     SENTRY_ORG: process.env.SENTRY_ORG,
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
   },
 })

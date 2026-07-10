@@ -1,3 +1,4 @@
+import { checkout, polar, portal, usage, webhooks } from "@polar-sh/better-auth"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { magicLink } from "better-auth/plugins"
@@ -7,6 +8,7 @@ import { MAGIC_LINK_EXPIRATION_SECONDS } from "@/config/time"
 import { db, schema } from "@/db/drizzle"
 import { renderMagicLinkEmail } from "@/emails/magic-link"
 import { env } from "@/env"
+import { polarClient } from "@/lib/polar"
 import { sendEmail } from "@/lib/send-email"
 
 export const auth = betterAuth({
@@ -27,6 +29,23 @@ export const auth = betterAuth({
           body: await renderMagicLinkEmail(url),
         })
       },
+    }),
+    polar({
+      client: polarClient,
+      createCustomerOnSignUp: true,
+      use: [
+        checkout({
+          products: [
+            {
+              productId: "7e1a7860-45e3-4f71-b249-389df0412d23",
+              slug: "pro",
+            },
+          ],
+          successUrl: "/success?checkout_id={CHECKOUT_ID}",
+          authenticatedUsersOnly: true,
+        }),
+        portal(),
+      ],
     }),
   ],
   socialProviders: {

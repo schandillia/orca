@@ -1,9 +1,13 @@
 import { db } from "@/db/drizzle"
 import { inngest } from "@/inngest/client"
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init"
+import {
+  createTRPCRouter,
+  premiumProcedure,
+  protectedProcedure,
+} from "@/trpc/init"
 
 export const appRouter = createTRPCRouter({
-  testAI: protectedProcedure.mutation(async () => {
+  testAI: premiumProcedure.mutation(async () => {
     await inngest.send({ name: "execute/ai" })
     return { success: true, message: "Job queued" }
   }),
