@@ -29,3 +29,6 @@ export const workflowRelations = relations(workflow, ({ one }) => ({
     references: [user.id],
   }),
 }))
+
+export type Workflow = typeof workflow.$inferSelect
+export type NewWorkflow = typeof workflow.$inferInsert

@@ -29,13 +29,14 @@ export const workflowsRouter = createTRPCRouter({
         id: z.uuid(),
       }),
     )
-    .mutation(({ ctx, input }) => {
-      return db
+    .mutation(async ({ ctx, input }) => {
+      const [deletedWorkflow] = await db
         .delete(workflow)
         .where(
           and(eq(workflow.id, input.id), eq(workflow.userId, ctx.auth.user.id)),
         )
         .returning()
+      return deletedWorkflow
     }),
   updateName: protectedProcedure
     .input(
@@ -44,8 +45,8 @@ export const workflowsRouter = createTRPCRouter({
         name: z.string().min(1),
       }),
     )
-    .mutation(({ ctx, input }) => {
-      return db
+    .mutation(async ({ ctx, input }) => {
+      const [updatedWorkflow] = await db
         .update(workflow)
         .set({
           name: input.name,
@@ -54,6 +55,7 @@ export const workflowsRouter = createTRPCRouter({
           and(eq(workflow.id, input.id), eq(workflow.userId, ctx.auth.user.id)),
         )
         .returning()
+      return updatedWorkflow
     }),
   getOne: protectedProcedure
     .input(

@@ -1,5 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server"
 import { headers } from "next/headers"
+import superjson from "superjson"
 import { auth } from "@/lib/auth/auth"
 import { polarClient } from "@/lib/polar"
 
@@ -15,7 +16,9 @@ export const createTRPCContext = async () => {
 
 const t = initTRPC
   .context<Awaited<ReturnType<typeof createTRPCContext>>>()
-  .create()
+  .create({
+    transformer: superjson,
+  })
 
 export const createTRPCRouter = t.router
 export const createCallerFactory = t.createCallerFactory

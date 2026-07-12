@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
-import { FiLoader } from "react-icons/fi"
 import { cn } from "@/lib/utils"
+import { IconLoader } from "@tabler/icons-react"
 
 export function LoadingSwap({
   isLoading,
@@ -29,7 +29,7 @@ export function LoadingSwap({
           className,
         )}
       >
-        <FiLoader className="animate-spin" />
+        <IconLoader className="size-4 animate-spin" />
       </div>
     </div>
   )
