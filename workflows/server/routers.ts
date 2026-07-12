@@ -1,6 +1,7 @@
-import { and, eq } from "drizzle-orm"
+import { and, count, desc, eq, ilike } from "drizzle-orm"
 import { generateSlug } from "random-word-slugs"
 import z from "zod"
+import { PAGINATION } from "@/config/pagination"
 import { db } from "@/db/drizzle"
 import { workflow } from "@/db/schemas/workflow-schema"
 import {
@@ -68,9 +69,54 @@ export const workflowsRouter = createTRPCRouter({
         ),
       })
     }),
-  getMany: protectedProcedure.query(({ ctx }) => {
-    return db.query.workflow.findMany({
-      where: eq(workflow.userId, ctx.auth.user.id),
-    })
-  }),
+  getMany: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().default(PAGINATION.DEFAULT_PAGE),
+        pageSize: z
+          .number()
+          .min(PAGINATION.MIN_PAGE_SIZE)
+          .max(PAGINATION.MAX_PAGE_SIZE)
+          .default(PAGINATION.DEFAULT_PAGE_SIZE),
+        search: z.string().default(""),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, search } = input
+      const where = search
+        ? and(
+            eq(workflow.userId, ctx.auth.user.id),
+            ilike(workflow.name, `%${search}%`),
+          )
+        : eq(workflow.userId, ctx.auth.user.id)
+
+      const [items, [{ count: totalCount }]] = await Promise.all([
+        db.query.workflow.findMany({
+          where,
+          limit: pageSize,
+          offset: (page - 1) * pageSize,
+          orderBy: desc(workflow.updatedAt),
+        }),
+        db
+          .select({
+            count: count(),
+          })
+          .from(workflow)
+          .where(where),
+      ])
+
+      const totalPages = Math.ceil(totalCount / pageSize)
+      const hasNextPage = page < totalPages
+      const hasPreviousPage = page > 1
+
+      return {
+        items,
+        page,
+        pageSize,
+        totalCount,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      }
+    }),
 })
