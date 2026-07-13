@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server"
 import { and, count, desc, eq, ilike } from "drizzle-orm"
 import { generateSlug } from "random-word-slugs"
 import z from "zod"
@@ -63,13 +64,22 @@ export const workflowsRouter = createTRPCRouter({
         id: z.uuid(),
       }),
     )
-    .query(({ ctx, input }) => {
-      return db.query.workflow.findFirst({
+    .query(async ({ ctx, input }) => {
+      const result = await db.query.workflow.findFirst({
         where: and(
           eq(workflow.id, input.id),
           eq(workflow.userId, ctx.auth.user.id),
         ),
       })
+
+      if (!result) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workflow not found",
+        })
+      }
+
+      return result
     }),
   getMany: protectedProcedure
     .input(
