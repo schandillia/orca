@@ -25,6 +25,7 @@
       "!.DS_Store",
       "!coverage",
       "!components/ui",
+      "!components/react-flow",
       "!**/*.svg",
       "!**/globals.css"
     ]

@@ -1,10 +1,11 @@
 import { TRPCError } from "@trpc/server"
+import type { Edge, Node } from "@xyflow/react"
 import { and, count, desc, eq, ilike } from "drizzle-orm"
 import { generateSlug } from "random-word-slugs"
 import z from "zod"
 import { PAGINATION } from "@/config/pagination"
 import { db } from "@/db/drizzle"
-import { workflow } from "@/db/schemas/workflow-schema"
+import { NodeType, node, workflow } from "@/db/schemas/workflow-schema"
 import {
   createTRPCRouter,
   premiumProcedure,
@@ -13,16 +14,28 @@ import {
 
 export const workflowsRouter = createTRPCRouter({
   create: premiumProcedure.mutation(async ({ ctx }) => {
-    const [newWorkflow] = await db
-      .insert(workflow)
-      .values({
-        id: crypto.randomUUID(),
-        name: generateSlug(3),
-        userId: ctx.auth.user.id,
-      })
-      .returning()
+    return db.transaction(async (tx) => {
+      const workflowId = crypto.randomUUID()
 
-    return newWorkflow
+      const [newWorkflow] = await tx
+        .insert(workflow)
+        .values({
+          id: workflowId,
+          name: generateSlug(3),
+          userId: ctx.auth.user.id,
+        })
+        .returning()
+
+      await tx.insert(node).values({
+        id: crypto.randomUUID(),
+        workflowId,
+        type: NodeType.INITIAL,
+        position: { x: 0, y: 0 },
+        name: NodeType.INITIAL,
+      })
+
+      return newWorkflow
+    })
   }),
   remove: protectedProcedure
     .input(
@@ -70,6 +83,10 @@ export const workflowsRouter = createTRPCRouter({
           eq(workflow.id, input.id),
           eq(workflow.userId, ctx.auth.user.id),
         ),
+        with: {
+          nodes: true,
+          connections: true,
+        },
       })
 
       if (!result) {
@@ -79,7 +96,26 @@ export const workflowsRouter = createTRPCRouter({
         })
       }
 
-      return result
+      const nodes: Node[] = result.nodes.map((node) => ({
+        id: node.id,
+        type: node.type,
+        position: node.position as { x: number; y: number },
+        data: (node.data as Record<string, unknown>) || {},
+      }))
+      const edges: Edge[] = result.connections.map((connection) => ({
+        id: connection.id,
+        source: connection.fromNodeId,
+        target: connection.toNodeId,
+        sourceHandle: connection.fromOutput,
+        targetHandle: connection.toInput,
+      }))
+
+      return {
+        id: result.id,
+        name: result.name,
+        nodes,
+        edges,
+      }
     }),
   getMany: protectedProcedure
     .input(
