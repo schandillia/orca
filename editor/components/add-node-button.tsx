@@ -1,18 +1,22 @@
 "use client"
 
 import { IconPlus } from "@tabler/icons-react"
-import { memo } from "react"
+import { memo, useState } from "react"
+import { NodeSelector } from "@/components/node-selector"
 import { Button } from "@/components/ui/button"
 
 export const AddNodeButton = memo(() => {
+  const [selectorOpen, setSelectorOpen] = useState(false)
   return (
-    <Button
-      onClick={() => {}}
-      size="icon"
-      className="bg-background"
-      variant="outline"
-    >
-      <IconPlus />
-    </Button>
+    <NodeSelector open={selectorOpen} onOpenChange={setSelectorOpen}>
+      <Button
+        onClick={() => setSelectorOpen(true)}
+        size="icon"
+        className="bg-background"
+        variant="outline"
+      >
+        <IconPlus />
+      </Button>
+    </NodeSelector>
   )
 })
