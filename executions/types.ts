@@ -9,12 +9,9 @@ export interface NodeExecutorParams<TData = Record<string, unknown>> {
   nodeId: string
   context: WorkflowContext
   step: StepTools
-  // publish: TODO Add realtime later
+  publish: StepTools["realtime"]["publish"]
 }
 
 export type NodeExecutor<TData = Record<string, unknown>> = (
   params: NodeExecutorParams<TData>,
 ) => Promise<WorkflowContext>
-
-// biome-ignore lint/suspicious/noExplicitAny: registry needs a type-erased executor to hold heterogeneous NodeExecutor<T> variants
-export type AnyNodeExecutor = NodeExecutor<any>

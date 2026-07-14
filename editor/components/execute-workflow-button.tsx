@@ -1,4 +1,4 @@
-import { IconFlask2 } from "@tabler/icons-react"
+import { IconFlask2, IconLoader } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { useExecuteWorkflow } from "@/workflows/hooks/use-workflows"
 
@@ -17,7 +17,11 @@ export function ExecuteWorkflowButton({ workflowId }: Props) {
       onClick={handleExecute}
       disabled={executeWorkflow.isPending}
     >
-      <IconFlask2 className="size-4" />
+      {executeWorkflow.isPending ? (
+        <IconLoader className="size-4 animate-spin" />
+      ) : (
+        <IconFlask2 className="size-4" />
+      )}
       Execute workflow
     </Button>
   )

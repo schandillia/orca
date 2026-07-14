@@ -4,10 +4,13 @@ import { IconWorld } from "@tabler/icons-react"
 import { type Node, type NodeProps, useReactFlow } from "@xyflow/react"
 import { memo, useState } from "react"
 import { BaseExecutionNode } from "@/executions/components/base-execution-node"
+import { fetchHttpRequestRealtimeToken } from "@/executions/components/http-request/actions"
 import {
   HttpRequestDialog,
   type HttpRequestFormValues,
 } from "@/executions/components/http-request/dialog"
+import { useNodeStatus } from "@/executions/hooks/use-node-status"
+import { httpRequestChannel } from "@/inngest/channels/http-request"
 
 type HttpRequestNodeData = {
   variableName?: string
@@ -21,7 +24,11 @@ type HttpRequestNodeType = Node<HttpRequestNodeData>
 export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const { setNodes } = useReactFlow()
-  const nodeStatus = "initial"
+  const nodeStatus = useNodeStatus({
+    nodeId: props.id,
+    channel: httpRequestChannel(),
+    token: fetchHttpRequestRealtimeToken,
+  })
   const nodeData = props.data
   const description = nodeData?.endpoint
     ? `${nodeData.method || "GET"}: ${nodeData.endpoint}`
