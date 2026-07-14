@@ -67,6 +67,9 @@ export const node = pgTable("node", {
     .notNull(),
 })
 
+export type Node = typeof node.$inferSelect
+export type NewNode = typeof node.$inferInsert
+
 export const connection = pgTable(
   "connection",
   {
@@ -110,6 +113,9 @@ export const connection = pgTable(
     ),
   ],
 )
+
+export type Connection = typeof connection.$inferSelect
+export type NewConnection = typeof connection.$inferInsert
 
 export const workflowRelations = relations(workflow, ({ one, many }) => ({
   user: one(user, {

@@ -1,62 +1,62 @@
-import { createAnthropic } from "@ai-sdk/anthropic"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
-import { createOpenAI } from "@ai-sdk/openai"
-import { generateText } from "ai"
+import { eq } from "drizzle-orm"
+import { NonRetriableError } from "inngest"
 import { MAX_RETRIES } from "@/config/background-jobs"
+import { db } from "@/db/drizzle"
+import { type NodeType, workflow } from "@/db/schemas/workflow-schema"
+import { getExecutor } from "@/executions/lib/executor-registry"
 import { inngest } from "@/inngest/client"
+import { topologicalSort } from "@/inngest/utils"
 
-const google = createGoogleGenerativeAI()
-const openai = createOpenAI()
-const anthropic = createAnthropic()
+// const createTelemetryOptions = (functionId: string) => ({
+//   isEnabled: true,
+//   functionId,
+//   recordInputs: true,
+//   recordOutputs: true,
+// })
 
-const createTelemetryOptions = (functionId: string) => ({
-  isEnabled: true,
-  functionId,
-  recordInputs: true,
-  recordOutputs: true,
-})
-
-export const execute = inngest.createFunction(
+export const executeWorkflow = inngest.createFunction(
   {
-    id: "execute-ai",
+    id: "execute-workflow",
     retries: MAX_RETRIES,
     triggers: {
-      event: "execute/ai",
+      event: "workflows/execute.workflow",
     },
   },
-  async ({ step }) => {
-    const { steps: geminiSteps } = await step.ai.wrap(
-      "gemini-generate-text",
-      generateText,
-      {
-        model: google("gemini-2.5-flash"),
-        system: "You are a helpful assistant",
-        prompt: "Write a ghost story",
-        experimental_telemetry: createTelemetryOptions("gemini-generate-text"),
-      },
-    )
-    const { steps: openAISteps } = await step.ai.wrap(
-      "openAI-generate-text",
-      generateText,
-      {
-        model: openai("gpt-5.5"),
-        system: "You are a helpful assistant",
-        prompt: "Write a ghost story",
-        experimental_telemetry: createTelemetryOptions("openAI-generate-text"),
-      },
-    )
-    const { steps: anthropicSteps } = await step.ai.wrap(
-      "anthropic-generate-text",
-      generateText,
-      {
-        model: anthropic("claude-sonnet-4-5"),
-        system: "You are a helpful assistant",
-        prompt: "Write a ghost story",
-        experimental_telemetry: createTelemetryOptions(
-          "anthropic-generate-text",
-        ),
-      },
-    )
-    return { geminiSteps, openAISteps, anthropicSteps }
+  async ({ event, step }) => {
+    const workflowId = event.data.workflowId
+
+    if (!workflowId) throw new NonRetriableError("Missing workflow ID")
+
+    const sortedNodes = await step.run("prepare-workflow", async () => {
+      const existingWorkflow = await db.query.workflow.findFirst({
+        where: eq(workflow.id, workflowId),
+        with: {
+          nodes: true,
+          connections: true,
+        },
+      })
+      if (!existingWorkflow) throw new NonRetriableError("Workflow not found")
+
+      return topologicalSort(
+        existingWorkflow.nodes,
+        existingWorkflow.connections,
+      )
+    })
+
+    // Initialize the context with any initial data from the trigger
+    let context = event.data.initialData || {}
+
+    // Execute each node
+    for (const node of sortedNodes) {
+      const executor = getExecutor(node.type as NodeType)
+      context = await executor({
+        data: node.data as Record<string, unknown>,
+        nodeId: node.id,
+        context,
+        step,
+      })
+    }
+
+    return { workflowId, result: context }
   },
 )

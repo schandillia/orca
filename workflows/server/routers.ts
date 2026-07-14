@@ -11,6 +11,7 @@ import {
   node,
   workflow,
 } from "@/db/schemas/workflow-schema"
+import { inngest } from "@/inngest/client"
 import {
   createTRPCRouter,
   premiumProcedure,
@@ -18,6 +19,29 @@ import {
 } from "@/trpc/init"
 
 export const workflowsRouter = createTRPCRouter({
+  execute: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const workflow = await db.query.workflow.findFirst({
+        where: (workflow, { and, eq }) =>
+          and(eq(workflow.id, input.id), eq(workflow.userId, ctx.auth.user.id)),
+      })
+      if (!workflow) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workflow not found",
+        })
+      }
+      await inngest.send({
+        name: "workflows/execute.workflow",
+        data: { workflowId: input.id },
+      })
+      return workflow
+    }),
   create: premiumProcedure.mutation(async ({ ctx }) => {
     return db.transaction(async (tx) => {
       const workflowId = crypto.randomUUID()
