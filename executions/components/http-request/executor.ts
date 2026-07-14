@@ -4,9 +4,14 @@ import ky, { type Options as KyOptions } from "ky"
 import type { NodeExecutor } from "@/executions/types"
 
 Handlebars.registerHelper("json", (context) => {
-  const jsonString = JSON.stringify(context, null, 2)
-  const safeString = new Handlebars.SafeString(jsonString)
-  return safeString
+  try {
+    const jsonString = JSON.stringify(context, null, 2)
+    return new Handlebars.SafeString(jsonString)
+  } catch (error) {
+    throw new Error(
+      `Failed to serialize context to JSON: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
 })
 
 type HttpRequestData = {
@@ -42,19 +47,59 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   }
 
   const result = await step.run("http-request", async () => {
-    const endpoint = Handlebars.compile(data.endpoint)(context)
+    let endpoint: string
+    try {
+      const template = Handlebars.compile(data.endpoint)
+      endpoint = template(context)
+
+      if (!endpoint || typeof endpoint !== "string") {
+        throw new Error("Endpoint template must resolve to a non-empty string")
+      }
+    } catch (error) {
+      throw new NonRetriableError(
+        `HTTP Request node: Failed to resolve endpoint template: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
+    }
+
     const method = data.method
 
     const options: KyOptions = { method }
 
     if (["POST", "PUT", "PATCH"].includes(method)) {
-      const resolved = Handlebars.compile(data.body || "{}")(context)
-      JSON.parse(resolved)
+      let resolved: string
+
+      try {
+        const template = Handlebars.compile(data.body || "{}")
+        resolved = template(context)
+
+        JSON.parse(resolved)
+      } catch (error) {
+        throw new NonRetriableError(
+          `HTTP Request node: Failed to resolve request body: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        )
+      }
+
       options.body = resolved
-      options.headers = { "Content-Type": "application/json" }
+      options.headers = {
+        "Content-Type": "application/json",
+      }
     }
 
-    const response = await ky(endpoint, options)
+    let response: Response
+
+    try {
+      response = await ky(endpoint, options)
+    } catch (error) {
+      throw new NonRetriableError(
+        `HTTP Request node: Request failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
+    }
     const contentType = response.headers.get("content-type")
     const responseData = contentType?.includes("application/json")
       ? await response.json()
