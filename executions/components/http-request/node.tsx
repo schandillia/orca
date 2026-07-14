@@ -2,7 +2,6 @@
 
 import { IconWorld } from "@tabler/icons-react"
 import { type Node, type NodeProps, useReactFlow } from "@xyflow/react"
-import ky from "ky"
 import { memo, useState } from "react"
 import { BaseExecutionNode } from "@/executions/components/base-execution-node"
 import {
@@ -11,6 +10,7 @@ import {
 } from "@/executions/components/http-request/dialog"
 
 type HttpRequestNodeData = {
+  variableName?: string
   endpoint?: string
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   body?: string

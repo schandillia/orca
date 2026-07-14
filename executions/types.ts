@@ -15,3 +15,6 @@ export interface NodeExecutorParams<TData = Record<string, unknown>> {
 export type NodeExecutor<TData = Record<string, unknown>> = (
   params: NodeExecutorParams<TData>,
 ) => Promise<WorkflowContext>
+
+// biome-ignore lint/suspicious/noExplicitAny: registry needs a type-erased executor to hold heterogeneous NodeExecutor<T> variants
+export type AnyNodeExecutor = NodeExecutor<any>
