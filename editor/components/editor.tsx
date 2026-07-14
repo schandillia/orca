@@ -20,8 +20,10 @@ import { useCallback, useState } from "react"
 import { ErrorView, LoadingView } from "@/components/entity-components"
 import { useSuspenseWorkflow } from "@/workflows/hooks/use-workflows"
 import "@xyflow/react/dist/style.css"
+import { useSetAtom } from "jotai"
 import { AddNodeButton } from "@/editor/components/add-node-button"
 import { nodeComponents } from "@/editor/registry/node-components"
+import { editorAtom } from "@/editor/store/atoms"
 
 export function EditorLoading() {
   return <LoadingView message="Loading editor..." />
@@ -37,6 +39,7 @@ interface EditorProps {
 
 export function Editor({ workflowId }: EditorProps) {
   const { data: workflow } = useSuspenseWorkflow(workflowId)
+  const setEditor = useSetAtom(editorAtom)
   const [nodes, setNodes] = useState<Node[]>(workflow.nodes)
   const [edges, setEdges] = useState<Edge[]>(workflow.edges)
 
@@ -66,6 +69,12 @@ export function Editor({ workflowId }: EditorProps) {
         onConnect={onConnect}
         fitView
         nodeTypes={nodeComponents}
+        onInit={setEditor}
+        snapGrid={[10, 10]}
+        snapToGrid
+        panOnScroll
+        panOnDrag={false}
+        selectionOnDrag
         proOptions={{
           hideAttribution: true,
         }}

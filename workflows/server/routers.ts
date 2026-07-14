@@ -5,7 +5,12 @@ import { generateSlug } from "random-word-slugs"
 import z from "zod"
 import { PAGINATION } from "@/config/pagination"
 import { db } from "@/db/drizzle"
-import { NodeType, node, workflow } from "@/db/schemas/workflow-schema"
+import {
+  connection,
+  NodeType,
+  node,
+  workflow,
+} from "@/db/schemas/workflow-schema"
 import {
   createTRPCRouter,
   premiumProcedure,
@@ -51,6 +56,73 @@ export const workflowsRouter = createTRPCRouter({
         )
         .returning()
       return deletedWorkflow
+    }),
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.uuid(),
+        nodes: z.array(
+          z.object({
+            id: z.string(),
+            type: z.string().nullish(),
+            position: z.object({ x: z.number(), y: z.number() }),
+            data: z.record(z.string(), z.any()).optional(),
+          }),
+        ),
+        edges: z.array(
+          z.object({
+            source: z.string(),
+            target: z.string(),
+            sourceHandle: z.string().nullish(),
+            targetHandle: z.string().nullish(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, nodes, edges } = input
+      const existingWorkflow = await db.query.workflow.findFirst({
+        where: and(eq(workflow.id, id), eq(workflow.userId, ctx.auth.user.id)),
+      })
+      if (!existingWorkflow) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workflow not found",
+        })
+      }
+      const updatedAt = new Date()
+      return await db.transaction(async (tx) => {
+        await tx.delete(node).where(eq(node.workflowId, id))
+        if (nodes.length > 0) {
+          await tx.insert(node).values(
+            nodes.map((node) => ({
+              id: node.id,
+              workflowId: id,
+              name: node.type ?? "unknown",
+              type: node.type ?? "unknown",
+              position: node.position,
+              data: node.data ?? {},
+            })),
+          )
+        }
+        if (edges.length > 0) {
+          await tx.insert(connection).values(
+            edges.map((edge) => ({
+              id: crypto.randomUUID(),
+              workflowId: id,
+              fromNodeId: edge.source,
+              toNodeId: edge.target,
+              fromOutput: edge.sourceHandle ?? "main",
+              toInput: edge.targetHandle ?? "main",
+            })),
+          )
+        }
+        await tx.update(workflow).set({ updatedAt }).where(eq(workflow.id, id))
+        return {
+          ...existingWorkflow,
+          updatedAt,
+        }
+      })
     }),
   updateName: protectedProcedure
     .input(

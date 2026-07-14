@@ -1,6 +1,7 @@
 "use client"
 
-import { IconDeviceFloppy } from "@tabler/icons-react"
+import { IconCloudUpload, IconLoader } from "@tabler/icons-react"
+import { useAtomValue } from "jotai"
 import { useEffect, useRef, useState } from "react"
 import {
   Breadcrumb,
@@ -12,8 +13,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { editorAtom } from "@/editor/store/atoms"
 import {
   useSuspenseWorkflow,
+  useUpdateWorkflow,
   useUpdateWorkflowName,
 } from "@/workflows/hooks/use-workflows"
 
@@ -22,10 +25,27 @@ interface EditorHeaderProps {
 }
 
 export function EditorSaveButton({ workflowId }: EditorHeaderProps) {
+  const editor = useAtomValue(editorAtom)
+  const saveWorkflow = useUpdateWorkflow()
+  const handleSave = () => {
+    if (!editor) return
+    const nodes = editor.getNodes()
+    const edges = editor.getEdges()
+
+    saveWorkflow.mutate({
+      id: workflowId,
+      nodes,
+      edges,
+    })
+  }
   return (
     <div className="ml-auto">
-      <Button size="sm" onClick={() => {}} disabled={false}>
-        <IconDeviceFloppy className="size-4" />
+      <Button size="sm" onClick={handleSave} disabled={saveWorkflow.isPending}>
+        {saveWorkflow.isPending ? (
+          <IconLoader className="size-4 animate-spin" />
+        ) : (
+          <IconCloudUpload className="size-4" />
+        )}
         Save
       </Button>
     </div>

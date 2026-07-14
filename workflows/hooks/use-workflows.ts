@@ -63,6 +63,30 @@ export const useSuspenseWorkflow = (id: string) => {
 }
 
 /**
+ * Hook to update a workflow
+ */
+export const useUpdateWorkflow = () => {
+  const queryClient = useQueryClient()
+  const trpc = useTRPC()
+  return useMutation(
+    trpc.workflows.update.mutationOptions({
+      onSuccess: (data) => {
+        toast.success(`Workflow "${data.name}" saved`)
+
+        queryClient.invalidateQueries(trpc.workflows.getMany.queryOptions({}))
+
+        queryClient.invalidateQueries(
+          trpc.workflows.getOne.queryOptions({ id: data.id }),
+        )
+      },
+      onError: (error) => {
+        toast.error(`Failed to save workflow: ${error.message}`)
+      },
+    }),
+  )
+}
+
+/**
  * Hook to update a workflow name
  */
 export const useUpdateWorkflowName = () => {

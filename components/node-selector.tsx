@@ -113,6 +113,7 @@ export function NodeSelector({
               >
                 <div className="flex items-center gap-6 w-full overflow-hidden">
                   {typeof Icon === "string" ? (
+                    // biome-ignore lint/performance/noImgElement: Small SVG/PNG icons don't benefit from next/image.
                     <img
                       src={Icon}
                       alt={nodeType.label}
@@ -147,6 +148,7 @@ export function NodeSelector({
               >
                 <div className="flex items-center gap-6 w-full overflow-hidden">
                   {typeof Icon === "string" ? (
+                    // biome-ignore lint/performance/noImgElement: Small SVG/PNG icons don't benefit from next/image.
                     <img
                       src={Icon}
                       alt={nodeType.label}

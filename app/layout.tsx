@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Manrope } from "next/font/google"
 import "@/app/styles/globals.css"
+import { Provider } from "jotai"
 import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
@@ -51,7 +52,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <NuqsAdapter>
-              {children}
+              <Provider>{children}</Provider>
               <Toaster position="top-right" richColors closeButton />
             </NuqsAdapter>
           </ThemeProvider>
