@@ -16,9 +16,9 @@ Handlebars.registerHelper("json", (context) => {
 })
 
 type HttpRequestData = {
-  variableName: string
-  endpoint: string
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
+  variableName?: string
+  endpoint?: string
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   body?: string
 }
 
@@ -34,34 +34,34 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     status: "loading",
   })
 
-  if (!data.endpoint) {
-    await publish("http-request-error", httpRequestChannel().status, {
-      nodeId,
-      status: "error",
-    })
-    throw new NonRetriableError("HTTP Request node: No endpoint configured")
-  }
-
-  if (!data.variableName) {
-    await publish("http-request-error", httpRequestChannel().status, {
-      nodeId,
-      status: "error",
-    })
-    throw new NonRetriableError(
-      "HTTP Request node: Variable name not configured",
-    )
-  }
-
-  if (!data.method) {
-    await publish("http-request-error", httpRequestChannel().status, {
-      nodeId,
-      status: "error",
-    })
-    throw new NonRetriableError("HTTP Request node: Method not configured")
-  }
-
   try {
     const result = await step.run("http-request", async () => {
+      if (!data.endpoint) {
+        await publish("http-request-error", httpRequestChannel().status, {
+          nodeId,
+          status: "error",
+        })
+        throw new NonRetriableError("HTTP Request node: No endpoint configured")
+      }
+
+      if (!data.variableName) {
+        await publish("http-request-error", httpRequestChannel().status, {
+          nodeId,
+          status: "error",
+        })
+        throw new NonRetriableError(
+          "HTTP Request node: Variable name not configured",
+        )
+      }
+
+      if (!data.method) {
+        await publish("http-request-error", httpRequestChannel().status, {
+          nodeId,
+          status: "error",
+        })
+        throw new NonRetriableError("HTTP Request node: Method not configured")
+      }
+
       let endpoint: string
       try {
         const template = Handlebars.compile(data.endpoint)

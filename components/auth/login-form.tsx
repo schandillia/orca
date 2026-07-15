@@ -1,5 +1,6 @@
 "use client"
 
+import { IconLoader } from "@tabler/icons-react"
 import { useRef, useState } from "react"
 import { FaGithub } from "react-icons/fa"
 import { FcGoogle } from "react-icons/fc"
@@ -16,7 +17,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { LoadingSwap } from "@/components/ui/loading-swap"
 import { BRAND_NAME, DEFAULT_LOGIN_REDIRECT } from "@/config/app"
 import { authClient, signIn } from "@/lib/auth/auth-client"
 import { cn } from "@/lib/utils"
@@ -100,11 +100,12 @@ export function LoginForm({
     ({ id, label, icon: Icon }) => ({
       label,
       onClick: () => handleSocialLogin(id),
-      content: (
-        <LoadingSwap isLoading={loadingAction === id}>
+      content:
+        loadingAction === id ? (
+          <IconLoader className="size-4 animate-spin" />
+        ) : (
           <Icon className="size-4" />
-        </LoadingSwap>
-      ),
+        ),
     }),
   )
 
@@ -156,9 +157,10 @@ export function LoginForm({
 
             <Field>
               <Button type="submit" className="w-full" disabled={isDisabled}>
-                <LoadingSwap isLoading={loadingAction === "magic"}>
-                  Continue
-                </LoadingSwap>
+                {loadingAction === "magic" && (
+                  <IconLoader className="size-4 animate-spin" />
+                )}
+                Continue
               </Button>
 
               {error && (

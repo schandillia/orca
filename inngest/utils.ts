@@ -1,5 +1,6 @@
 import toposort from "toposort"
 import type { Connection, Node } from "@/db/schemas/workflow-schema"
+import { inngest } from "@/inngest/client"
 
 export const topologicalSort = (
   nodes: Node[],
@@ -44,5 +45,16 @@ export const topologicalSort = (
     const node = nodeMap.get(id)
     if (!node) throw new Error(`Node ${id} not found`)
     return node
+  })
+}
+
+type WorkflowExecutionData = {
+  workflowId: string
+} & Record<string, unknown>
+
+export const sendWorkflowExecution = async (data: WorkflowExecutionData) => {
+  return inngest.send({
+    name: "workflows/execute.workflow",
+    data,
   })
 }

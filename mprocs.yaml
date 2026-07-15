@@ -1,4 +1,7 @@
 procs:
+  ngrok:
+    cmd: ["bun", "run", "ngrok:dev"]
+
   inngest:
     cmd: ["inngest", "dev"]
 

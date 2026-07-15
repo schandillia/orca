@@ -11,7 +11,7 @@ import {
   node,
   workflow,
 } from "@/db/schemas/workflow-schema"
-import { inngest } from "@/inngest/client"
+import { sendWorkflowExecution } from "@/inngest/utils"
 import {
   createTRPCRouter,
   premiumProcedure,
@@ -36,10 +36,7 @@ export const workflowsRouter = createTRPCRouter({
           message: "Workflow not found",
         })
       }
-      await inngest.send({
-        name: "workflows/execute.workflow",
-        data: { workflowId: input.id },
-      })
+      await sendWorkflowExecution({ workflowId: input.id })
       return workflow
     }),
   create: premiumProcedure.mutation(async ({ ctx }) => {
