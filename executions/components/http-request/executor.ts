@@ -22,7 +22,7 @@ type HttpRequestData = {
   body?: string
 }
 
-export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
+export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   data,
   nodeId,
   context,

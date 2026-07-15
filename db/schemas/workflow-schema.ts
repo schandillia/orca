@@ -39,6 +39,9 @@ export const NodeType = {
   HTTP_REQUEST: "HTTP_REQUEST",
   GOOGLE_FORM_TRIGGER: "GOOGLE_FORM_TRIGGER",
   STRIPE_TRIGGER: "STRIPE_TRIGGER",
+  ANTHROPIC: "ANTHROPIC",
+  OPENAI: "OPENAI",
+  GEMINI: "GEMINI",
 } as const
 export type NodeType = (typeof NodeType)[keyof typeof NodeType]
 export const nodeTypeEnum = pgEnum(
