@@ -2,6 +2,7 @@ import { createOpenAI } from "@ai-sdk/openai"
 import { generateText } from "ai"
 import Handlebars from "handlebars"
 import { NonRetriableError } from "inngest"
+import { db } from "@/db/drizzle"
 import type { NodeExecutor } from "@/executions/types"
 import { openaiChannel } from "@/inngest/channels/openai"
 
@@ -18,6 +19,7 @@ Handlebars.registerHelper("json", (context) => {
 
 type OpenAIData = {
   variableName?: string
+  credentialId?: string
   model?: string
   systemPrompt?: string
   userPrompt?: string
@@ -55,17 +57,30 @@ export const openaiExecutor: NodeExecutor<OpenAIData> = async ({
     })
     throw new NonRetriableError("OpenAI node: Model not configured")
   }
-  // TODO: Throw if credentials are missing
+  if (!data.credentialId) {
+    await publish("openai-error", openaiChannel().status, {
+      nodeId,
+      status: "error",
+    })
+    throw new NonRetriableError("OpenAI node: Credentials not configured")
+  }
 
   const systemPrompt = data.systemPrompt
     ? Handlebars.compile(data.systemPrompt)(context)
     : "Never make things up. Stick to facts. Keep it under 100 words. And no flattery."
   const userPrompt = Handlebars.compile(data.userPrompt)(context)
 
-  // TODO: Fetch user credentials
-  const credentialValue = process.env.OPENAI_API_KEY
+  const credentialId = data.credentialId
+  const credentialRecord = await step.run("get-credential", () => {
+    return db.query.credential.findFirst({
+      where: (credential, { eq }) => eq(credential.id, credentialId),
+    })
+  })
+  if (!credentialRecord) {
+    throw new NonRetriableError("OpenAI node: Credential not found")
+  }
   const openai = createOpenAI({
-    apiKey: credentialValue,
+    apiKey: credentialRecord.value,
   })
 
   try {

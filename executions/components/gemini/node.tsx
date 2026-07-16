@@ -14,6 +14,7 @@ import geminiModels from "@/lib/ai/models/gemini-models.json"
 
 type GeminiNodeData = {
   variableName?: string
+  credentialId?: string
   model?: string
   systemPrompt?: string
   userPrompt?: string

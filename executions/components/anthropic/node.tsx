@@ -14,6 +14,7 @@ import anthropicModels from "@/lib/ai/models/anthropic-models.json"
 
 type AnthropicNodeData = {
   variableName?: string
+  credentialId?: string
   model?: string
   systemPrompt?: string
   userPrompt?: string

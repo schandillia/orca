@@ -1,6 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import Image from "next/image"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
@@ -28,6 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useCredentialsByType } from "@/credentials/hooks/use-credentials"
+import { CredentialType } from "@/db/schemas/workflow-schema"
 
 const formSchema = z.object({
   variableName: z
@@ -37,6 +40,7 @@ const formSchema = z.object({
       message:
         "Variable name must start with a letter or underscore and can only contain letters, numbers, and underscores",
     }),
+  credentialId: z.string().min(1, "Credential is required"),
   model: z.string().min(1, "Model is required"),
   systemPrompt: z.string().optional(),
   userPrompt: z.string().min(1, "User prompt is required"),
@@ -60,10 +64,13 @@ export function AnthropicDialog({
   defaultValues = {},
   availableModels,
 }: Props) {
+  const { data: credentials, isLoading: isLoadingCredentials } =
+    useCredentialsByType(CredentialType.ANTHROPIC)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       variableName: defaultValues.variableName || "",
+      credentialId: defaultValues.credentialId || "",
       model: defaultValues.model || availableModels[0] || "",
       systemPrompt: defaultValues.systemPrompt || "",
       userPrompt: defaultValues.userPrompt || "",
@@ -74,6 +81,7 @@ export function AnthropicDialog({
     if (open) {
       form.reset({
         variableName: defaultValues.variableName || "",
+        credentialId: defaultValues.credentialId || "",
         model: defaultValues.model || availableModels[0] || "",
         systemPrompt: defaultValues.systemPrompt || "",
         userPrompt: defaultValues.userPrompt || "",
@@ -122,6 +130,55 @@ export function AnthropicDialog({
           />
           <Controller
             control={form.control}
+            name="credentialId"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Anthropic Credential</FieldLabel>
+
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isLoadingCredentials || !credentials?.length}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a credential">
+                      {credentials?.find((c) => c.id === field.value) && (
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src="/logos/anthropic.svg"
+                            alt="Anthropic"
+                            width={16}
+                            height={16}
+                          />
+                          {credentials.find((c) => c.id === field.value)?.name}
+                        </div>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {credentials?.map((credential) => (
+                      <SelectItem key={credential.id} value={credential.id}>
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src="/logos/anthropic.svg"
+                            alt="Anthropic"
+                            width={16}
+                            height={16}
+                          />
+                          {credential.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+          <Controller
+            control={form.control}
             name="model"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
@@ -140,7 +197,6 @@ export function AnthropicDialog({
                 </Select>
                 <FieldDescription>
                   The Anthropic model to use for this completion.
-                  {`{{${watchVariableName}.text}}`}
                 </FieldDescription>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />

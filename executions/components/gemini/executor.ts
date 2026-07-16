@@ -2,6 +2,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { generateText } from "ai"
 import Handlebars from "handlebars"
 import { NonRetriableError } from "inngest"
+import { db } from "@/db/drizzle"
 import type { NodeExecutor } from "@/executions/types"
 import { geminiChannel } from "@/inngest/channels/gemini"
 
@@ -18,6 +19,7 @@ Handlebars.registerHelper("json", (context) => {
 
 type GeminiData = {
   variableName?: string
+  credentialId?: string
   model?: string
   systemPrompt?: string
   userPrompt?: string
@@ -55,17 +57,33 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
     })
     throw new NonRetriableError("Gemini node: Model not configured")
   }
-  // TODO: Throw if credentials are missing
+  if (!data.credentialId) {
+    await publish("gemini-error", geminiChannel().status, {
+      nodeId,
+      status: "error",
+    })
+    throw new NonRetriableError("Gemini node: Credentials not configured")
+  }
 
   const systemPrompt = data.systemPrompt
     ? Handlebars.compile(data.systemPrompt)(context)
     : "Never make things up. Stick to facts. Keep it under 100 words. And no flattery."
   const userPrompt = Handlebars.compile(data.userPrompt)(context)
 
-  // TODO: Fetch user credentials
-  const credentialValue = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+  if (!data.credentialId) {
+    throw new NonRetriableError("Gemini node: Missing credential ID")
+  }
+  const credentialId = data.credentialId
+  const credentialRecord = await step.run("get-credential", () => {
+    return db.query.credential.findFirst({
+      where: (credential, { eq }) => eq(credential.id, credentialId),
+    })
+  })
+  if (!credentialRecord) {
+    throw new NonRetriableError("Gemini node: Credential not found")
+  }
   const google = createGoogleGenerativeAI({
-    apiKey: credentialValue,
+    apiKey: credentialRecord.value,
   })
 
   try {

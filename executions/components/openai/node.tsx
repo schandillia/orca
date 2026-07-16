@@ -14,6 +14,7 @@ import openaiModels from "@/lib/ai/models/openai-models.json"
 
 type OpenAINodeData = {
   variableName?: string
+  credentialId?: string
   model?: string
   systemPrompt?: string
   userPrompt?: string
