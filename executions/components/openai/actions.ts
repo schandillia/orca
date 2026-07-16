@@ -1,12 +1,12 @@
 "use server"
 
 import { getClientSubscriptionToken } from "inngest/react"
-import { geminiChannel } from "@/inngest/channels/gemini"
+import { openaiChannel } from "@/inngest/channels/openai"
 import { inngest } from "@/inngest/client"
 
-export async function fetchGeminiRealtimeToken() {
+export async function fetchOpenAIRealtimeToken() {
   return getClientSubscriptionToken(inngest, {
-    channel: geminiChannel(),
+    channel: openaiChannel(),
     topics: ["status"],
   })
 }

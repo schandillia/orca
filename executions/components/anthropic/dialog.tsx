@@ -37,34 +37,36 @@ const formSchema = z.object({
       message:
         "Variable name must start with a letter or underscore and can only contain letters, numbers, and underscores",
     }),
-  endpoint: z.string().min(1, { message: "Please enter a valid URL" }),
-  method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]),
-  body: z.string().optional(),
+  model: z.string().min(1, "Model is required"),
+  systemPrompt: z.string().optional(),
+  userPrompt: z.string().min(1, "User prompt is required"),
   // .refine()
 })
 
-export type HttpRequestFormValues = z.infer<typeof formSchema>
+export type AnthropicFormValues = z.infer<typeof formSchema>
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (values: z.infer<typeof formSchema>) => void
-  defaultValues?: Partial<HttpRequestFormValues>
+  defaultValues?: Partial<AnthropicFormValues>
+  availableModels: string[]
 }
 
-export function HttpRequestDialog({
+export function AnthropicDialog({
   open,
   onOpenChange,
   onSubmit,
   defaultValues = {},
+  availableModels,
 }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       variableName: defaultValues.variableName || "",
-      endpoint: defaultValues.endpoint || "",
-      method: defaultValues.method || "GET",
-      body: defaultValues.body || "",
+      model: defaultValues.model || availableModels[0] || "",
+      systemPrompt: defaultValues.systemPrompt || "",
+      userPrompt: defaultValues.userPrompt || "",
     },
   })
   // Reset form values when dialog opens with new defaults
@@ -72,15 +74,13 @@ export function HttpRequestDialog({
     if (open) {
       form.reset({
         variableName: defaultValues.variableName || "",
-        endpoint: defaultValues.endpoint || "",
-        method: defaultValues.method || "GET",
-        body: defaultValues.body || "",
+        model: defaultValues.model || availableModels[0] || "",
+        systemPrompt: defaultValues.systemPrompt || "",
+        userPrompt: defaultValues.userPrompt || "",
       })
     }
-  }, [open, defaultValues, form])
-  const watchVariableName = form.watch("variableName") || "apiResponse"
-  const watchMethod = form.watch("method")
-  const showBodyField = ["POST", "PUT", "PATCH"].includes(watchMethod)
+  }, [open, defaultValues, form, availableModels])
+  const watchVariableName = form.watch("variableName") || "anthropicResponse"
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     onSubmit(values)
     onOpenChange(false)
@@ -89,9 +89,9 @@ export function HttpRequestDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] flex-col">
         <DialogHeader>
-          <DialogTitle>HTTP Request</DialogTitle>
+          <DialogTitle>Anthropic Configuration</DialogTitle>
           <DialogDescription>
-            Configure settings for the HTTP request node.
+            Configure the AI model and prompts for this node.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -105,10 +105,14 @@ export function HttpRequestDialog({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="endpoint">Variable Name</FieldLabel>
-                <Input id="variableName" placeholder="apiResponse" {...field} />
+                <Input
+                  id="variableName"
+                  placeholder="anthropicResponse"
+                  {...field}
+                />
                 <FieldDescription>
                   Use this name to reference the result in other nodes:{" "}
-                  {`{{${watchVariableName}.httpResponse.data}}`}
+                  {`{{${watchVariableName}.text}}`}
                 </FieldDescription>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -118,24 +122,25 @@ export function HttpRequestDialog({
           />
           <Controller
             control={form.control}
-            name="method"
+            name="model"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="method">Method</FieldLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger id="method" className="w-full">
-                    <SelectValue placeholder="Select a method" />
+                <FieldLabel htmlFor="endpoint">Model</FieldLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="model" className="w-full">
+                    <SelectValue placeholder="Select a model" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GET">GET</SelectItem>
-                    <SelectItem value="POST">POST</SelectItem>
-                    <SelectItem value="PUT">PUT</SelectItem>
-                    <SelectItem value="PATCH">PATCH</SelectItem>
-                    <SelectItem value="DELETE">DELETE</SelectItem>
+                    {availableModels.map((model) => (
+                      <SelectItem key={model} value={model}>
+                        {model}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FieldDescription>
-                  The HTTP method to use for this request.
+                  The Anthropic model to use for this completion.
+                  {`{{${watchVariableName}.text}}`}
                 </FieldDescription>
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -145,18 +150,22 @@ export function HttpRequestDialog({
           />
           <Controller
             control={form.control}
-            name="endpoint"
+            name="systemPrompt"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="endpoint">Endpoint URL</FieldLabel>
-                <Input
-                  id="endpoint"
-                  placeholder="https://api.example.com/users/{{httpResponse.data.id}}"
+                <FieldLabel htmlFor="body">
+                  {" "}
+                  System Prompt (Optional)
+                </FieldLabel>
+                <Textarea
+                  id="body"
+                  placeholder="Never make things up. Stick to facts. Keep it under 100 words. And no flattery."
+                  className="min-h-20 font-mono text-sm"
                   {...field}
                 />
                 <FieldDescription>
                   {
-                    "Static URL or use “{{variables}}” for simple values or “{{json variable}}” to stringify objects"
+                    "Sets the behavior of the assistant. Use “{{variables}}” for simple values or “{{json variable}}” to stringify objects."
                   }
                 </FieldDescription>
                 {fieldState.invalid && (
@@ -165,35 +174,29 @@ export function HttpRequestDialog({
               </Field>
             )}
           />
-          {showBodyField && (
-            <Controller
-              control={form.control}
-              name="body"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="body">Request Body</FieldLabel>
-                  <Textarea
-                    id="body"
-                    placeholder={`{
-                    "userId": "{{httpResponse.data.id}}",
-                    "name": "{{httpResponse.data.name}}",
-                    "items": "{{httpResponse.data.items}}"
-                    }`}
-                    className="min-h-30 font-mono text-sm"
-                    {...field}
-                  />
-                  <FieldDescription>
-                    {
-                      "JSON with template variables. Use “{{variables}}” for simple values or “{{json variable}}” to stringify objects"
-                    }
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          )}
+          <Controller
+            control={form.control}
+            name="userPrompt"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="body"> User Prompt</FieldLabel>
+                <Textarea
+                  id="body"
+                  placeholder="Summarize this text: {{json httpResponse.data}}."
+                  className="min-h-30 font-mono text-sm"
+                  {...field}
+                />
+                <FieldDescription>
+                  {
+                    "The prompt to send to the AI. Use “{{variables}}” for simple values or “{{json variable}}” to stringify objects."
+                  }
+                </FieldDescription>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
           <DialogFooter className="mt-4">
             <Button form="http-request-form" type="submit">
               Save

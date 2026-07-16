@@ -1,9 +1,9 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { createAnthropic } from "@ai-sdk/anthropic"
 import { generateText } from "ai"
 import Handlebars from "handlebars"
 import { NonRetriableError } from "inngest"
 import type { NodeExecutor } from "@/executions/types"
-import { geminiChannel } from "@/inngest/channels/gemini"
+import { anthropicChannel } from "@/inngest/channels/anthropic"
 
 Handlebars.registerHelper("json", (context) => {
   try {
@@ -16,44 +16,44 @@ Handlebars.registerHelper("json", (context) => {
   }
 })
 
-type GeminiData = {
+type AnthropicData = {
   variableName?: string
   model?: string
   systemPrompt?: string
   userPrompt?: string
 }
 
-export const geminiExecutor: NodeExecutor<GeminiData> = async ({
+export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
   data,
   nodeId,
   context,
   step,
   publish,
 }) => {
-  await publish("gemini-loading", geminiChannel().status, {
+  await publish("anthropic-loading", anthropicChannel().status, {
     nodeId,
     status: "loading",
   })
   if (!data.variableName) {
-    await publish("gemini-error", geminiChannel().status, {
+    await publish("anthropic-error", anthropicChannel().status, {
       nodeId,
       status: "error",
     })
-    throw new NonRetriableError("Gemini node: Variable name not configured")
+    throw new NonRetriableError("Anthropic node: Variable name not configured")
   }
   if (!data.userPrompt) {
-    await publish("gemini-error", geminiChannel().status, {
+    await publish("anthropic-error", anthropicChannel().status, {
       nodeId,
       status: "error",
     })
-    throw new NonRetriableError("Gemini node: User prompt not configured")
+    throw new NonRetriableError("Anthropic node: User prompt not configured")
   }
   if (!data.model) {
-    await publish("gemini-error", geminiChannel().status, {
+    await publish("anthropic-error", anthropicChannel().status, {
       nodeId,
       status: "error",
     })
-    throw new NonRetriableError("Gemini node: Model not configured")
+    throw new NonRetriableError("Anthropic node: Model not configured")
   }
   // TODO: Throw if credentials are missing
 
@@ -63,26 +63,30 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
   const userPrompt = Handlebars.compile(data.userPrompt)(context)
 
   // TODO: Fetch user credentials
-  const credentialValue = process.env.GOOGLE_GENERATIVE_AI_API_KEY
-  const google = createGoogleGenerativeAI({
+  const credentialValue = process.env.ANTHROPIC_API_KEY
+  const anthropic = createAnthropic({
     apiKey: credentialValue,
   })
 
   try {
-    const { steps } = await step.ai.wrap("gemini-generate-text", generateText, {
-      model: google(data.model),
-      system: systemPrompt,
-      prompt: userPrompt,
-      experimental_telemetry: {
-        isEnabled: true,
-        recordInputs: true,
-        recordOutputs: true,
+    const { steps } = await step.ai.wrap(
+      "anthropic-generate-text",
+      generateText,
+      {
+        model: anthropic(data.model),
+        system: systemPrompt,
+        prompt: userPrompt,
+        experimental_telemetry: {
+          isEnabled: true,
+          recordInputs: true,
+          recordOutputs: true,
+        },
       },
-    })
+    )
     const text =
       steps[0].content[0].type === "text" ? steps[0].content[0].text : ""
 
-    await publish("gemini-success", geminiChannel().status, {
+    await publish("anthropic-success", anthropicChannel().status, {
       nodeId,
       status: "success",
     })
@@ -91,7 +95,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
       [data.variableName]: { aiResponse: text },
     }
   } catch (error) {
-    await publish("gemini-error", geminiChannel().status, {
+    await publish("anthropic-error", anthropicChannel().status, {
       nodeId,
       status: "error",
     })

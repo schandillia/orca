@@ -80,7 +80,7 @@ export function GeminiDialog({
       })
     }
   }, [open, defaultValues, form, availableModels])
-  const watchVariableName = form.watch("variableName") || "myApiCall"
+  const watchVariableName = form.watch("variableName") || "geminiResponse"
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     onSubmit(values)
     onOpenChange(false)
@@ -105,7 +105,11 @@ export function GeminiDialog({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="endpoint">Variable Name</FieldLabel>
-                <Input id="variableName" placeholder="MyApiCall" {...field} />
+                <Input
+                  id="variableName"
+                  placeholder="geminiResponse"
+                  {...field}
+                />
                 <FieldDescription>
                   Use this name to reference the result in other nodes:{" "}
                   {`{{${watchVariableName}.text}}`}
@@ -155,7 +159,7 @@ export function GeminiDialog({
                 </FieldLabel>
                 <Textarea
                   id="body"
-                  placeholder="You are a helpful assistant."
+                  placeholder="Never make things up. Stick to facts. Keep it under 100 words. And no flattery."
                   className="min-h-20 font-mono text-sm"
                   {...field}
                 />

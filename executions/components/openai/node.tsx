@@ -3,39 +3,39 @@
 import { type Node, type NodeProps, useReactFlow } from "@xyflow/react"
 import { memo, useState } from "react"
 import { BaseExecutionNode } from "@/executions/components/base-execution-node"
-import { fetchGeminiRealtimeToken } from "@/executions/components/gemini/actions"
+import { fetchOpenAIRealtimeToken } from "@/executions/components/openai/actions"
 import {
-  GeminiDialog,
-  type GeminiFormValues,
-} from "@/executions/components/gemini/dialog"
+  OpenAIDialog,
+  type OpenAIFormValues,
+} from "@/executions/components/openai/dialog"
 import { useNodeStatus } from "@/executions/hooks/use-node-status"
-import { geminiChannel } from "@/inngest/channels/gemini"
-import geminiModels from "@/lib/ai/models/gemini-models.json"
+import { openaiChannel } from "@/inngest/channels/openai"
+import openaiModels from "@/lib/ai/models/openai-models.json"
 
-type GeminiNodeData = {
+type OpenAINodeData = {
   variableName?: string
   model?: string
   systemPrompt?: string
   userPrompt?: string
 }
 
-type GeminiNodeType = Node<GeminiNodeData>
+type OpenAINodeType = Node<OpenAINodeData>
 
-export const GeminiNode = memo((props: NodeProps<GeminiNodeType>) => {
+export const OpenAINode = memo((props: NodeProps<OpenAINodeType>) => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const { setNodes } = useReactFlow()
   const nodeStatus = useNodeStatus({
     nodeId: props.id,
-    channel: geminiChannel(),
-    token: fetchGeminiRealtimeToken,
+    channel: openaiChannel(),
+    token: fetchOpenAIRealtimeToken,
   })
 
   const nodeData = props.data
   const description = nodeData?.userPrompt
-    ? `${nodeData.model || geminiModels.models[0] || "gemini"}: ${nodeData.userPrompt.slice(0, 50)}...`
+    ? `${nodeData.model || openaiModels.models[0] || "openai"}: ${nodeData.userPrompt.slice(0, 50)}...`
     : "Not configured"
   const handleOpenSettings = () => setDialogOpen(true)
-  const handleSubmit = (values: GeminiFormValues) => {
+  const handleSubmit = (values: OpenAIFormValues) => {
     setNodes((nodes) =>
       nodes.map((node) => {
         if (node.id === props.id) {
@@ -54,18 +54,18 @@ export const GeminiNode = memo((props: NodeProps<GeminiNodeType>) => {
 
   return (
     <>
-      <GeminiDialog
+      <OpenAIDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSubmit={handleSubmit}
         defaultValues={nodeData}
-        availableModels={geminiModels.models}
+        availableModels={openaiModels.models}
       />
       <BaseExecutionNode
         {...props}
         id={props.id}
-        icon="/logos/gemini.svg"
-        name="Gemini"
+        icon="/logos/openai.svg"
+        name="OpenAI"
         status={nodeStatus}
         description={description}
         onSettings={handleOpenSettings}
@@ -75,4 +75,4 @@ export const GeminiNode = memo((props: NodeProps<GeminiNodeType>) => {
   )
 })
 
-GeminiNode.displayName = "Gemini Node"
+OpenAINode.displayName = "OpenAI Node"
