@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm"
 import {
   jsonb,
   pgEnum,
@@ -33,6 +32,46 @@ export const workflow = pgTable("workflow", {
 export type Workflow = typeof workflow.$inferSelect
 export type NewWorkflow = typeof workflow.$inferInsert
 
+export const CredentialType = {
+  OPENAI: "OPENAI",
+  ANTHROPIC: "ANTHROPIC",
+  GEMINI: "GEMINI",
+} as const
+
+export type CredentialType =
+  (typeof CredentialType)[keyof typeof CredentialType]
+
+export const credentialTypeEnum = pgEnum(
+  "credential_type",
+  Object.values(CredentialType) as [CredentialType, ...CredentialType[]],
+)
+
+export const credential = pgTable("credential", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  value: text("value").notNull(),
+  type: credentialTypeEnum("type").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+  })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+    }),
+})
+
+export type Credential = typeof credential.$inferSelect
+export type NewCredential = typeof credential.$inferInsert
+
 export const NodeType = {
   INITIAL: "INITIAL",
   MANUAL_TRIGGER: "MANUAL_TRIGGER",
@@ -55,6 +94,9 @@ export const node = pgTable("node", {
     .references(() => workflow.id, {
       onDelete: "cascade",
     }),
+  credentialId: text("credential_id").references(() => credential.id, {
+    onDelete: "set null",
+  }),
   name: text("name").notNull(),
   type: nodeTypeEnum("type").notNull(),
   position: jsonb("position").notNull(),
@@ -121,42 +163,3 @@ export const connection = pgTable(
 
 export type Connection = typeof connection.$inferSelect
 export type NewConnection = typeof connection.$inferInsert
-
-export const workflowRelations = relations(workflow, ({ one, many }) => ({
-  user: one(user, {
-    fields: [workflow.userId],
-    references: [user.id],
-  }),
-  nodes: many(node),
-  connections: many(connection),
-}))
-
-export const nodeRelations = relations(node, ({ one, many }) => ({
-  workflow: one(workflow, {
-    fields: [node.workflowId],
-    references: [workflow.id],
-  }),
-  outgoingConnections: many(connection, {
-    relationName: "FromNode",
-  }),
-  incomingConnections: many(connection, {
-    relationName: "ToNode",
-  }),
-}))
-
-export const connectionRelations = relations(connection, ({ one }) => ({
-  workflow: one(workflow, {
-    fields: [connection.workflowId],
-    references: [workflow.id],
-  }),
-  fromNode: one(node, {
-    fields: [connection.fromNodeId],
-    references: [node.id],
-    relationName: "FromNode",
-  }),
-  toNode: one(node, {
-    fields: [connection.toNodeId],
-    references: [node.id],
-    relationName: "ToNode",
-  }),
-}))

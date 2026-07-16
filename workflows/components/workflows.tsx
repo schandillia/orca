@@ -17,12 +17,12 @@ import {
 import type { Workflow } from "@/db/schemas/workflow-schema"
 import { useEntitySearch } from "@/hooks/use-entity-search"
 import { useUpgradeModal } from "@/hooks/use-upgrade-modal"
-import { useWorkflowsParams } from "@/hooks/use-workflows-params"
 import {
   useCreateWorkflow,
   useRemoveWorkflow,
   useSuspenseWorkflows,
 } from "@/workflows/hooks/use-workflows"
+import { useWorkflowsParams } from "@/workflows/hooks/use-workflows-params"
 
 export function WorkflowsSearch() {
   const [params, setParams] = useWorkflowsParams()

@@ -58,3 +58,58 @@ export const sendWorkflowExecution = async (data: WorkflowExecutionData) => {
     data,
   })
 }
+
+export type LevelsResult = {
+  levels: Node[][]
+  dependencies: Record<string, string[]>
+}
+
+export const groupIntoLevels = (
+  nodes: Node[],
+  connections: Connection[],
+): LevelsResult => {
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]))
+  const dependencies: Record<string, string[]> = {}
+
+  for (const node of nodes) {
+    dependencies[node.id] = []
+  }
+  for (const conn of connections) {
+    dependencies[conn.toNodeId]?.push(conn.fromNodeId)
+  }
+
+  const depthCache = new Map<string, number>()
+
+  const computeDepth = (
+    nodeId: string,
+    visiting = new Set<string>(),
+  ): number => {
+    if (depthCache.has(nodeId)) return depthCache.get(nodeId) as number
+    if (visiting.has(nodeId)) throw new Error("Workflow contains a cycle")
+
+    visiting.add(nodeId)
+    const preds = dependencies[nodeId] || []
+    const depth =
+      preds.length === 0
+        ? 0
+        : Math.max(...preds.map((p) => computeDepth(p, visiting))) + 1
+    visiting.delete(nodeId)
+
+    depthCache.set(nodeId, depth)
+    return depth
+  }
+
+  const levels: Node[][] = []
+  for (const node of nodes) {
+    const depth = computeDepth(node.id)
+    levels[depth] = levels[depth] || []
+    levels[depth].push(node)
+  }
+
+  // Map back through nodeMap in case of any id mismatches, filter out gaps
+  const cleanLevels = levels
+    .filter(Boolean)
+    .map((level) => level.map((n) => nodeMap.get(n.id) as Node))
+
+  return { levels: cleanLevels, dependencies }
+}

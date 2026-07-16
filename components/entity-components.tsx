@@ -74,7 +74,11 @@ export function EntityHeader({
         </Button>
       )}
       {newButtonHref && !onNew && (
-        <Button size="sm" render={<Link href={newButtonHref} />}>
+        <Button
+          size="sm"
+          nativeButton={false}
+          render={<Link href={newButtonHref} />}
+        >
           <IconPlus className="size-4" />
           {newButtonLabel}
         </Button>
