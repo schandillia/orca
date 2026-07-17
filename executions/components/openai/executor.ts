@@ -31,6 +31,7 @@ export const openaiExecutor: NodeExecutor<OpenAIData> = async ({
   context,
   step,
   publish,
+  userId,
 }) => {
   await publish("openai-loading", openaiChannel().status, {
     nodeId,
@@ -73,10 +74,15 @@ export const openaiExecutor: NodeExecutor<OpenAIData> = async ({
   const credentialId = data.credentialId
   const credentialRecord = await step.run("get-credential", () => {
     return db.query.credential.findFirst({
-      where: (credential, { eq }) => eq(credential.id, credentialId),
+      where: (credential, { eq, and }) =>
+        and(eq(credential.id, credentialId), eq(credential.userId, userId)),
     })
   })
   if (!credentialRecord) {
+    await publish("openai-error", openaiChannel().status, {
+      nodeId,
+      status: "error",
+    })
     throw new NonRetriableError("OpenAI node: Credential not found")
   }
   const openai = createOpenAI({

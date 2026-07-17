@@ -31,6 +31,7 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
   context,
   step,
   publish,
+  userId,
 }) => {
   await publish("anthropic-loading", anthropicChannel().status, {
     nodeId,
@@ -73,10 +74,15 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
   const credentialId = data.credentialId
   const credentialRecord = await step.run("get-credential", () => {
     return db.query.credential.findFirst({
-      where: (credential, { eq }) => eq(credential.id, credentialId),
+      where: (credential, { eq, and }) =>
+        and(eq(credential.id, credentialId), eq(credential.userId, userId)),
     })
   })
   if (!credentialRecord) {
+    await publish("anthropic-error", anthropicChannel().status, {
+      nodeId,
+      status: "error",
+    })
     throw new NonRetriableError("Anthropic node: Credential not found")
   }
   const anthropic = createAnthropic({

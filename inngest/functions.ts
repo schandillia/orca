@@ -27,7 +27,7 @@ export const executeWorkflow = inngest.createFunction(
 
     if (!workflowId) throw new NonRetriableError("Missing workflow ID")
 
-    const { levels, dependencies } = await step.run(
+    const { levels, dependencies, userId } = await step.run(
       "prepare-workflow",
       async () => {
         const existingWorkflow = await db.query.workflow.findFirst({
@@ -39,10 +39,16 @@ export const executeWorkflow = inngest.createFunction(
         })
         if (!existingWorkflow) throw new NonRetriableError("Workflow not found")
 
-        return groupIntoLevels(
+        const { levels, dependencies } = groupIntoLevels(
           existingWorkflow.nodes,
           existingWorkflow.connections,
         )
+
+        return {
+          levels,
+          dependencies,
+          userId: existingWorkflow.userId,
+        }
       },
     )
 
@@ -70,6 +76,7 @@ export const executeWorkflow = inngest.createFunction(
             context,
             step,
             publish: step.realtime.publish,
+            userId,
           })
         }),
       )

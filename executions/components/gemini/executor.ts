@@ -31,6 +31,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
   context,
   step,
   publish,
+  userId,
 }) => {
   await publish("gemini-loading", geminiChannel().status, {
     nodeId,
@@ -70,16 +71,18 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
     : "Never make things up. Stick to facts. Keep it under 100 words. And no flattery."
   const userPrompt = Handlebars.compile(data.userPrompt)(context)
 
-  if (!data.credentialId) {
-    throw new NonRetriableError("Gemini node: Missing credential ID")
-  }
   const credentialId = data.credentialId
   const credentialRecord = await step.run("get-credential", () => {
     return db.query.credential.findFirst({
-      where: (credential, { eq }) => eq(credential.id, credentialId),
+      where: (credential, { eq, and }) =>
+        and(eq(credential.id, credentialId), eq(credential.userId, userId)),
     })
   })
   if (!credentialRecord) {
+    await publish("gemini-error", geminiChannel().status, {
+      nodeId,
+      status: "error",
+    })
     throw new NonRetriableError("Gemini node: Credential not found")
   }
   const google = createGoogleGenerativeAI({

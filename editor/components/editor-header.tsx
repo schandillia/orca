@@ -31,7 +31,6 @@ export function EditorSaveButton({ workflowId }: EditorHeaderProps) {
     if (!editor) return
     const nodes = editor.getNodes()
     const edges = editor.getEdges()
-
     saveWorkflow.mutate({
       id: workflowId,
       nodes,

@@ -1,8 +1,10 @@
 import { NodeType } from "@/db/schemas/workflow-schema"
 import { anthropicExecutor } from "@/executions/components/anthropic/executor"
+import { discordExecutor } from "@/executions/components/discord/executor"
 import { geminiExecutor } from "@/executions/components/gemini/executor"
 import { httpRequestExecutor } from "@/executions/components/http-request/executor"
 import { openaiExecutor } from "@/executions/components/openai/executor"
+import { slackExecutor } from "@/executions/components/slack/executor"
 import type { NodeExecutor } from "@/executions/types"
 import { googleFormTriggerExecutor } from "@/triggers/components/google-form-trigger/executor"
 import { manualTriggerExecutor } from "@/triggers/components/manual-trigger/executor"
@@ -17,6 +19,8 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.GEMINI]: geminiExecutor,
   [NodeType.OPENAI]: openaiExecutor,
   [NodeType.ANTHROPIC]: anthropicExecutor,
+  [NodeType.DISCORD]: discordExecutor,
+  [NodeType.SLACK]: slackExecutor,
 }
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

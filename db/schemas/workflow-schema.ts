@@ -81,6 +81,8 @@ export const NodeType = {
   ANTHROPIC: "ANTHROPIC",
   OPENAI: "OPENAI",
   GEMINI: "GEMINI",
+  DISCORD: "DISCORD",
+  SLACK: "SLACK",
 } as const
 export type NodeType = (typeof NodeType)[keyof typeof NodeType]
 export const nodeTypeEnum = pgEnum(

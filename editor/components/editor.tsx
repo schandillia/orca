@@ -85,7 +85,7 @@ export function Editor({ workflowId }: EditorProps) {
           hideAttribution: true,
         }}
       >
-        <Background variant={BackgroundVariant.Lines} />
+        <Background variant={BackgroundVariant.Dots} />
         <Controls />
         <MiniMap />
         <Panel position="top-right">
