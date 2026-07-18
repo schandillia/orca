@@ -1,9 +1,9 @@
 "use client"
 
 import {
+  IconAlertTriangle,
   IconCircleCheck,
   IconCircleX,
-  IconClock,
   IconLoader,
 } from "@tabler/icons-react"
 import { formatDistanceToNow } from "date-fns"
@@ -108,13 +108,13 @@ const getStatusIcon = (status: ExecutionStatus) => {
     case ExecutionStatus.SUCCESS:
       return <IconCircleCheck className="size-5 text-green-600" />
     case ExecutionStatus.COMPLETED_WITH_ERRORS:
-      return <IconClock className="size-5 text-yellow-600" />
+      return <IconAlertTriangle className="size-5 text-yellow-600" />
     case ExecutionStatus.FAILED:
       return <IconCircleX className="size-5 text-red-600" />
     case ExecutionStatus.RUNNING:
       return <IconLoader className="size-5 animate-spin text-blue-600" />
     default:
-      return <IconClock className="size-5 text-muted-foreground" />
+      return <IconAlertTriangle className="size-5 text-muted-foreground" />
   }
 }
 
