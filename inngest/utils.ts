@@ -1,3 +1,4 @@
+import { createId } from "@paralleldrive/cuid2"
 import toposort from "toposort"
 import type { Connection, Node } from "@/db/schemas/workflow-schema"
 import { inngest } from "@/inngest/client"
@@ -56,6 +57,7 @@ export const sendWorkflowExecution = async (data: WorkflowExecutionData) => {
   return inngest.send({
     name: "workflows/execute.workflow",
     data,
+    id: createId(),
   })
 }
 

@@ -1,8 +1,13 @@
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { NonRetriableError } from "inngest"
 import { MAX_RETRIES } from "@/config/background-jobs"
 import { db } from "@/db/drizzle"
-import { type NodeType, workflow } from "@/db/schemas/workflow-schema"
+import {
+  ExecutionStatus,
+  execution,
+  type NodeType,
+  workflow,
+} from "@/db/schemas/workflow-schema"
 import { getExecutor } from "@/executions/lib/executor-registry"
 import { inngest } from "@/inngest/client"
 import { groupIntoLevels } from "@/inngest/utils"
@@ -21,11 +26,44 @@ export const executeWorkflow = inngest.createFunction(
     triggers: {
       event: "workflows/execute.workflow",
     },
+    onFailure: async ({ event, step }) => {
+      const inngestEventId = event.data.event.id
+
+      if (!inngestEventId) {
+        throw new NonRetriableError("Missing Inngest event ID")
+      }
+
+      return await step.run("update-execution-failed", async () => {
+        await db
+          .update(execution)
+          .set({
+            status: ExecutionStatus.FAILED,
+            error: event.data.error.message,
+            errorStack: event.data.error.stack,
+          })
+          .where(eq(execution.inngestEventId, inngestEventId))
+      })
+    },
   },
   async ({ event, step }) => {
+    const inngestEventId = event.id
     const workflowId = event.data.workflowId
 
-    if (!workflowId) throw new NonRetriableError("Missing workflow ID")
+    if (!inngestEventId || !workflowId)
+      throw new NonRetriableError("Missing event ID or workflow ID")
+
+    await step.run("create-execution", async () => {
+      const [newExecution] = await db
+        .insert(execution)
+        .values({
+          id: crypto.randomUUID(),
+          workflowId,
+          inngestEventId,
+        })
+        .returning()
+
+      return newExecution
+    })
 
     const { levels, dependencies, userId } = await step.run(
       "prepare-workflow",
@@ -54,6 +92,13 @@ export const executeWorkflow = inngest.createFunction(
 
     // Initialize the context with any initial data from the trigger
     let context = event.data.initialData || {}
+    const nodeErrors: {
+      nodeId: string
+      nodeName: string
+      variableName: string
+      message: string
+      stack?: string
+    }[] = []
 
     // Execute each level's nodes concurrently; wait for the full level
     // before moving to the next, so dependents always see prior results.
@@ -83,13 +128,47 @@ export const executeWorkflow = inngest.createFunction(
 
       results.forEach((result, i) => {
         const node = runnableNodes[i]
+
         if (result.status === "fulfilled") {
           context = { ...context, ...result.value }
         } else {
           failedNodeIds.add(node.id)
+
+          const error =
+            result.reason instanceof Error
+              ? result.reason
+              : new Error(String(result.reason))
+
+          nodeErrors.push({
+            nodeId: node.id,
+            nodeName: node.name,
+            variableName: (node.data as { variableName: string }).variableName,
+            message: error.message,
+            stack: error.stack,
+          })
         }
       })
     }
+
+    await step.run("update-execution", async () => {
+      await db
+        .update(execution)
+        .set({
+          status:
+            failedNodeIds.size > 0
+              ? ExecutionStatus.PARTIAL_SUCCESS
+              : ExecutionStatus.SUCCESS,
+          completedAt: new Date(),
+          output: context,
+          nodeErrors,
+        })
+        .where(
+          and(
+            eq(execution.inngestEventId, inngestEventId),
+            eq(execution.workflowId, workflowId),
+          ),
+        )
+    })
 
     return { workflowId, result: context }
   },

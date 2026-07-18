@@ -165,3 +165,53 @@ export const connection = pgTable(
 
 export type Connection = typeof connection.$inferSelect
 export type NewConnection = typeof connection.$inferInsert
+
+export const ExecutionStatus = {
+  RUNNING: "RUNNING",
+  SUCCESS: "SUCCESS",
+  PARTIAL_SUCCESS: "PARTIAL_SUCCESS",
+  FAILED: "FAILED",
+} as const
+
+export type ExecutionStatus =
+  (typeof ExecutionStatus)[keyof typeof ExecutionStatus]
+
+export const executionStatusEnum = pgEnum(
+  "execution_status",
+  Object.values(ExecutionStatus) as [ExecutionStatus, ...ExecutionStatus[]],
+)
+
+export const execution = pgTable("execution", {
+  id: text("id").primaryKey(),
+  workflowId: text("workflow_id")
+    .notNull()
+    .references(() => workflow.id, {
+      onDelete: "cascade",
+    }),
+  status: executionStatusEnum("status").default("RUNNING").notNull(),
+  error: text("error"),
+  errorStack: text("error_stack"),
+  startedAt: timestamp("started_at", {
+    withTimezone: true,
+  })
+    .defaultNow()
+    .notNull(),
+  completedAt: timestamp("completed_at", {
+    withTimezone: true,
+  }),
+  inngestEventId: text("inngest_event_id").notNull().unique(),
+  output: jsonb("output"),
+  nodeErrors:
+    jsonb("node_errors").$type<
+      {
+        nodeId: string
+        nodeName: string
+        variableName: string
+        message: string
+        stack?: string
+      }[]
+    >(),
+})
+
+export type Execution = typeof execution.$inferSelect
+export type NewExecution = typeof execution.$inferInsert

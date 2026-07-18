@@ -3,6 +3,7 @@ import { account, session, user } from "@/db/schemas/auth-schema"
 import {
   connection,
   credential,
+  execution,
   node,
   workflow,
 } from "@/db/schemas/workflow-schema"
@@ -35,6 +36,7 @@ export const workflowRelations = relations(workflow, ({ one, many }) => ({
   }),
   nodes: many(node),
   connections: many(connection),
+  executions: many(execution),
 }))
 
 export const credentialRelations = relations(credential, ({ one, many }) => ({
@@ -76,5 +78,12 @@ export const connectionRelations = relations(connection, ({ one }) => ({
     fields: [connection.toNodeId],
     references: [node.id],
     relationName: "ToNode",
+  }),
+}))
+
+export const executionRelations = relations(execution, ({ one }) => ({
+  workflow: one(workflow, {
+    fields: [execution.workflowId],
+    references: [workflow.id],
   }),
 }))

@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils"
 type EntityHeaderProps = {
   title: string
   description?: string
-  newButtonLabel: string
+  newButtonLabel?: string
   disabled?: boolean
   isCreating?: boolean
 } & (

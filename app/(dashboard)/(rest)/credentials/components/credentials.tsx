@@ -64,7 +64,7 @@ export function CredentialsList() {
 export function CredentialsHeader({ disabled }: { disabled?: boolean }) {
   return (
     <EntityHeader
-      title="credentials"
+      title="Credentials"
       description="Create and manage credentials"
       newButtonLabel="New Credential"
       newButtonHref="/credentials/new"
