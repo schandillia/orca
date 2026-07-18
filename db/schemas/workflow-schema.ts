@@ -169,7 +169,7 @@ export type NewConnection = typeof connection.$inferInsert
 export const ExecutionStatus = {
   RUNNING: "RUNNING",
   SUCCESS: "SUCCESS",
-  PARTIAL_SUCCESS: "PARTIAL_SUCCESS",
+  COMPLETED_WITH_ERRORS: "COMPLETED_WITH_ERRORS",
   FAILED: "FAILED",
 } as const
 

@@ -156,7 +156,7 @@ export const executeWorkflow = inngest.createFunction(
         .set({
           status:
             failedNodeIds.size > 0
-              ? ExecutionStatus.PARTIAL_SUCCESS
+              ? ExecutionStatus.COMPLETED_WITH_ERRORS
               : ExecutionStatus.SUCCESS,
           completedAt: new Date(),
           output: context,

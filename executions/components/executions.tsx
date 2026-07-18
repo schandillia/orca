@@ -107,7 +107,7 @@ const getStatusIcon = (status: ExecutionStatus) => {
   switch (status) {
     case ExecutionStatus.SUCCESS:
       return <IconCircleCheck className="size-5 text-green-600" />
-    case ExecutionStatus.PARTIAL_SUCCESS:
+    case ExecutionStatus.COMPLETED_WITH_ERRORS:
       return <IconClock className="size-5 text-yellow-600" />
     case ExecutionStatus.FAILED:
       return <IconCircleX className="size-5 text-red-600" />
@@ -120,8 +120,8 @@ const getStatusIcon = (status: ExecutionStatus) => {
 
 const formatStatus = (status: ExecutionStatus) => {
   switch (status) {
-    case ExecutionStatus.PARTIAL_SUCCESS:
-      return "Partial success"
+    case ExecutionStatus.COMPLETED_WITH_ERRORS:
+      return "Completed with errors"
     default:
       return status.charAt(0) + status.slice(1).toLowerCase()
   }

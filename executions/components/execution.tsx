@@ -9,6 +9,7 @@ import {
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { useState } from "react"
+import { buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -23,12 +24,13 @@ import {
 } from "@/components/ui/collapsible"
 import { ExecutionStatus } from "@/db/schemas/workflow-schema"
 import { useSuspenseExecution } from "@/executions/hooks/use-executions"
+import { cn } from "@/lib/utils"
 
 const getStatusIcon = (status: ExecutionStatus) => {
   switch (status) {
     case ExecutionStatus.SUCCESS:
       return <IconCircleCheck className="size-5 text-green-600" />
-    case ExecutionStatus.PARTIAL_SUCCESS:
+    case ExecutionStatus.COMPLETED_WITH_ERRORS:
       return <IconClock className="size-5 text-yellow-600" />
     case ExecutionStatus.FAILED:
       return <IconX className="size-5 text-red-600" />
@@ -41,8 +43,8 @@ const getStatusIcon = (status: ExecutionStatus) => {
 
 const formatStatus = (status: ExecutionStatus, failedNodeCount = 0) => {
   switch (status) {
-    case ExecutionStatus.PARTIAL_SUCCESS:
-      return `Partial success (${failedNodeCount} failed node${
+    case ExecutionStatus.COMPLETED_WITH_ERRORS:
+      return `Completed with errors (${failedNodeCount} failed node${
         failedNodeCount === 1 ? "" : "s"
       })`
     default:
@@ -161,7 +163,7 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
                       </span>
                     ) : null}
                   </p>
-                  <p className="mt-1 font-mono text-sm text-red-800">
+                  <p className="mt-1 font-mono text-sm wrap-anywhere text-red-800">
                     {error.message}
                   </p>
                   {error.stack && (
@@ -174,7 +176,15 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
                         }))
                       }
                     >
-                      <CollapsibleTrigger className="mt-3 inline-flex h-9 items-center justify-center rounded-3xl px-3 text-sm font-medium text-red-900 hover:bg-red-200">
+                      <CollapsibleTrigger
+                        className={cn(
+                          buttonVariants({
+                            variant: "destructive",
+                            size: "sm",
+                          }),
+                          "mt-3",
+                        )}
+                      >
                         {expandedNodeStacks[error.nodeId]
                           ? "Hide stack trace"
                           : "Show stack trace"}
@@ -216,15 +226,20 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
             )}
           </div>
         )}
-        {execution.output != null && (
-          <div className="mt-6 rounded-3xl border bg-muted p-4">
-            <p className="text-sm font-medium">Output</p>
+        {execution.output != null &&
+          !(
+            typeof execution.output === "object" &&
+            execution.output !== null &&
+            Object.keys(execution.output).length === 0
+          ) && (
+            <div className="mt-6 rounded-3xl border bg-muted p-4">
+              <p className="text-sm font-medium">Output</p>
 
-            <pre className="pretty-scrollbar mt-2 max-h-96 overflow-auto whitespace-pre-wrap wrap-break-word rounded-3xl border bg-background p-3 font-mono text-xs">
-              {JSON.stringify(execution.output as unknown, null, 2)}
-            </pre>
-          </div>
-        )}
+              <pre className="pretty-scrollbar mt-2 max-h-96 overflow-auto whitespace-pre-wrap wrap-break-word rounded-3xl border bg-background p-3 font-mono text-xs">
+                {JSON.stringify(execution.output as unknown, null, 2)}
+              </pre>
+            </div>
+          )}
       </CardContent>
     </Card>
   )
