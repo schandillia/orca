@@ -4,6 +4,7 @@ import z from "zod"
 import { PAGINATION } from "@/config/pagination"
 import { db } from "@/db/drizzle"
 import { CredentialType, credential } from "@/db/schemas/workflow-schema"
+import { encrypt } from "@/lib/encryption"
 import {
   createTRPCRouter,
   premiumProcedure,
@@ -26,7 +27,7 @@ export const credentialsRouter = createTRPCRouter({
         .values({
           id: crypto.randomUUID(),
           name,
-          value, // TODO: Encrypt in production
+          value: encrypt(value),
           type,
           userId: ctx.auth.user.id,
         })
@@ -80,7 +81,7 @@ export const credentialsRouter = createTRPCRouter({
         .set({
           name,
           type,
-          value, // TODO: Encrypt in production
+          value: encrypt(value),
         })
         .where(
           and(eq(credential.id, id), eq(credential.userId, ctx.auth.user.id)),

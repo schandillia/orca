@@ -5,6 +5,7 @@ import { NonRetriableError } from "inngest"
 import { db } from "@/db/drizzle"
 import type { NodeExecutor } from "@/executions/types"
 import { anthropicChannel } from "@/inngest/channels/anthropic"
+import { decrypt } from "@/lib/encryption"
 
 Handlebars.registerHelper("json", (context) => {
   try {
@@ -86,7 +87,7 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
     throw new NonRetriableError("Anthropic node: Credential not found")
   }
   const anthropic = createAnthropic({
-    apiKey: credentialRecord.value,
+    apiKey: decrypt(credentialRecord.value),
   })
 
   try {

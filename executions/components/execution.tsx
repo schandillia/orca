@@ -150,7 +150,7 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
               {execution.nodeErrors.map((error) => (
                 <div
                   key={error.nodeId}
-                  className="rounded border border-red-200 bg-red-100 p-3"
+                  className="rounded-3xl border border-red-200 bg-red-100 p-3"
                 >
                   <p className="text-sm font-medium text-red-900">
                     {error.nodeName}
@@ -181,7 +181,7 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
                       </CollapsibleTrigger>
 
                       <CollapsibleContent>
-                        <pre className="mt-2 overflow-auto rounded bg-red-200 p-2 font-mono text-xs text-red-900">
+                        <pre className="mt-2 overflow-auto rounded-3xl bg-red-200 p-2 font-mono text-xs text-red-900">
                           {error.stack}
                         </pre>
                       </CollapsibleContent>

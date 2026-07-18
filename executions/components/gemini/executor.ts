@@ -5,6 +5,7 @@ import { NonRetriableError } from "inngest"
 import { db } from "@/db/drizzle"
 import type { NodeExecutor } from "@/executions/types"
 import { geminiChannel } from "@/inngest/channels/gemini"
+import { decrypt } from "@/lib/encryption"
 
 Handlebars.registerHelper("json", (context) => {
   try {
@@ -86,7 +87,7 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
     throw new NonRetriableError("Gemini node: Credential not found")
   }
   const google = createGoogleGenerativeAI({
-    apiKey: credentialRecord.value,
+    apiKey: decrypt(credentialRecord.value),
   })
 
   try {

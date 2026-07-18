@@ -5,6 +5,7 @@ import { NonRetriableError } from "inngest"
 import { db } from "@/db/drizzle"
 import type { NodeExecutor } from "@/executions/types"
 import { openaiChannel } from "@/inngest/channels/openai"
+import { decrypt } from "@/lib/encryption"
 
 Handlebars.registerHelper("json", (context) => {
   try {
@@ -86,7 +87,7 @@ export const openaiExecutor: NodeExecutor<OpenAIData> = async ({
     throw new NonRetriableError("OpenAI node: Credential not found")
   }
   const openai = createOpenAI({
-    apiKey: credentialRecord.value,
+    apiKey: decrypt(credentialRecord.value),
   })
 
   try {

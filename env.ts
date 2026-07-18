@@ -31,6 +31,9 @@ export const env = createEnv({
     SENTRY_ORG: z.string().min(1).optional(),
     SENTRY_PROJECT: z.string().min(1).optional(),
     POLAR_ACCESS_TOKEN: z.string().min(1),
+    ENCRYPTION_KEY: z
+      .string()
+      .regex(/^[0-9a-fA-F]{64}$/, "Must be a 64-character hex string"),
   },
 
   client: {
@@ -58,5 +61,6 @@ export const env = createEnv({
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
   },
 })
