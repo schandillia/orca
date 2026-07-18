@@ -8,9 +8,7 @@ import {
 } from "@tabler/icons-react"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { useParams } from "next/navigation"
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -55,6 +53,9 @@ const formatStatus = (status: ExecutionStatus, failedNodeCount = 0) => {
 export const ExecutionView = ({ executionId }: { executionId: string }) => {
   const { data: execution } = useSuspenseExecution(executionId)
   const [showStackTrace, setShowStackTrace] = useState(false)
+  const [expandedNodeStacks, setExpandedNodeStacks] = useState<
+    Record<string, boolean>
+  >({})
 
   const duration = execution.completedAt
     ? Math.round(
@@ -114,7 +115,7 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
           {execution.completedAt ? (
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Completed
+                Duration
               </p>
               <p className="text-sm">
                 {formatDistanceToNow(execution.completedAt, {
@@ -141,7 +142,7 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
         {execution.nodeErrors &&
           Array.isArray(execution.nodeErrors) &&
           execution.nodeErrors.length > 0 && (
-            <div className="mt-6 rounded-md border border-red-200 bg-red-50 p-4 space-y-3">
+            <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-4 space-y-3">
               <div>
                 <p className="text-sm font-medium text-red-900">Failed nodes</p>
               </div>
@@ -163,12 +164,35 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
                   <p className="mt-1 font-mono text-sm text-red-800">
                     {error.message}
                   </p>
+                  {error.stack && (
+                    <Collapsible
+                      open={expandedNodeStacks[error.nodeId] ?? false}
+                      onOpenChange={(open) =>
+                        setExpandedNodeStacks((prev) => ({
+                          ...prev,
+                          [error.nodeId]: open,
+                        }))
+                      }
+                    >
+                      <CollapsibleTrigger className="mt-3 inline-flex h-9 items-center justify-center rounded-3xl px-3 text-sm font-medium text-red-900 hover:bg-red-200">
+                        {expandedNodeStacks[error.nodeId]
+                          ? "Hide stack trace"
+                          : "Show stack trace"}
+                      </CollapsibleTrigger>
+
+                      <CollapsibleContent>
+                        <pre className="mt-2 overflow-auto rounded bg-red-200 p-2 font-mono text-xs text-red-900">
+                          {error.stack}
+                        </pre>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
                 </div>
               ))}
             </div>
           )}
         {execution.error && (
-          <div className="mt-6 p-4 bg-red-50 rounded-md space-y-3">
+          <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-4 space-y-3">
             <div>
               <p className="text-sm font-medium text-red-900 mb-2">Error</p>
               <p className="text-sm text-red-800 font-mono">
@@ -180,7 +204,7 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
                 open={showStackTrace}
                 onOpenChange={setShowStackTrace}
               >
-                <CollapsibleTrigger className="inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium text-red-900 hover:bg-red-100">
+                <CollapsibleTrigger className="inline-flex h-9 items-center justify-center rounded-3xl px-3 text-sm font-medium text-red-900 hover:bg-red-100">
                   {showStackTrace ? "Hide stack trace" : "Show stack trace"}
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -190,6 +214,15 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
                 </CollapsibleContent>
               </Collapsible>
             )}
+          </div>
+        )}
+        {execution.output != null && (
+          <div className="mt-6 rounded-3xl border bg-muted p-4">
+            <p className="text-sm font-medium">Output</p>
+
+            <pre className="pretty-scrollbar mt-2 max-h-96 overflow-auto whitespace-pre-wrap wrap-break-word rounded-3xl border bg-background p-3 font-mono text-xs">
+              {JSON.stringify(execution.output as unknown, null, 2)}
+            </pre>
           </div>
         )}
       </CardContent>
