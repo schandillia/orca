@@ -5,6 +5,7 @@ import { db } from "@/db/drizzle"
 import {
   ExecutionStatus,
   execution,
+  type NodeOutput,
   type NodeType,
   workflow,
 } from "@/db/schemas/workflow-schema"
@@ -99,6 +100,7 @@ export const executeWorkflow = inngest.createFunction(
       message: string
       stack?: string
     }[] = []
+    const nodeOutputs: NodeOutput[] = []
 
     // Execute each level's nodes concurrently; wait for the full level
     // before moving to the next, so dependents always see prior results.
@@ -131,6 +133,18 @@ export const executeWorkflow = inngest.createFunction(
 
         if (result.status === "fulfilled") {
           context = { ...context, ...result.value }
+
+          const variableName = (node.data as { variableName: string })
+            .variableName
+          const output = result.value[variableName]
+          if (output != null && Object.keys(output).length > 0) {
+            nodeOutputs.push({
+              nodeId: node.id,
+              nodeName: node.name,
+              variableName,
+              output,
+            })
+          }
         } else {
           failedNodeIds.add(node.id)
 
@@ -159,7 +173,7 @@ export const executeWorkflow = inngest.createFunction(
               ? ExecutionStatus.COMPLETED_WITH_ERRORS
               : ExecutionStatus.SUCCESS,
           completedAt: new Date(),
-          output: context,
+          output: nodeOutputs,
           nodeErrors,
         })
         .where(

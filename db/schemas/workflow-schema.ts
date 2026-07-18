@@ -181,6 +181,21 @@ export const executionStatusEnum = pgEnum(
   Object.values(ExecutionStatus) as [ExecutionStatus, ...ExecutionStatus[]],
 )
 
+export type NodeError = {
+  nodeId: string
+  nodeName: string
+  variableName: string
+  message: string
+  stack?: string
+}
+
+export type NodeOutput = {
+  nodeId: string
+  nodeName: string
+  variableName: string
+  output: unknown
+}
+
 export const execution = pgTable("execution", {
   id: text("id").primaryKey(),
   workflowId: text("workflow_id")
@@ -200,17 +215,8 @@ export const execution = pgTable("execution", {
     withTimezone: true,
   }),
   inngestEventId: text("inngest_event_id").notNull().unique(),
-  output: jsonb("output"),
-  nodeErrors:
-    jsonb("node_errors").$type<
-      {
-        nodeId: string
-        nodeName: string
-        variableName: string
-        message: string
-        stack?: string
-      }[]
-    >(),
+  output: jsonb("output").$type<NodeOutput[]>(),
+  nodeErrors: jsonb("node_errors").$type<NodeError[]>(),
 })
 
 export type Execution = typeof execution.$inferSelect

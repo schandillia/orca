@@ -227,17 +227,31 @@ export const ExecutionView = ({ executionId }: { executionId: string }) => {
           </div>
         )}
         {execution.output != null &&
-          !(
-            typeof execution.output === "object" &&
-            execution.output !== null &&
-            Object.keys(execution.output).length === 0
-          ) && (
-            <div className="mt-6 rounded-3xl border bg-muted p-4">
-              <p className="text-sm font-medium">Output</p>
+          typeof execution.output === "object" &&
+          Object.keys(execution.output).length > 0 && (
+            <div className="mt-6 rounded-3xl border border-green-200 bg-green-50 p-4 space-y-3">
+              <p className="text-sm font-medium text-green-900">Outputs</p>
 
-              <pre className="pretty-scrollbar mt-2 max-h-96 overflow-auto whitespace-pre-wrap wrap-break-word rounded-3xl border bg-background p-3 font-mono text-xs">
-                {JSON.stringify(execution.output as unknown, null, 2)}
-              </pre>
+              {execution.output.map((nodeOutput) => (
+                <div
+                  key={nodeOutput.nodeId}
+                  className="rounded-3xl border border-green-200 bg-green-100 p-3"
+                >
+                  <p className="text-sm font-medium text-green-900">
+                    {nodeOutput.nodeName}
+                    {nodeOutput.variableName ? (
+                      <span className="font-normal text-green-700">
+                        {" "}
+                        ({nodeOutput.variableName})
+                      </span>
+                    ) : null}
+                  </p>
+
+                  <p className="mt-1 font-mono text-sm whitespace-pre-wrap wrap-anywhere text-green-800">
+                    {JSON.stringify(nodeOutput.output, null, 2)}
+                  </p>
+                </div>
+              ))}
             </div>
           )}
       </CardContent>
